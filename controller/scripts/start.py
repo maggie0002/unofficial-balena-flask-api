@@ -71,7 +71,7 @@ class journallogs(Resource):
 
 class launchwifi(Resource):
     def get(self):
-            cmd = '/app/wifi-connect -o 8080 --ui-directory custom-ui'.split()
+        cmd = '/app/wifi-connect -o 8080 --ui-directory custom-ui'.split()
 
         p = subprocess.Popen(cmd, stdout = subprocess.PIPE,
                                 stderr=subprocess.PIPE,
