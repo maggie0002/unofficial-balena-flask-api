@@ -32,17 +32,28 @@ def curl(request, balenaurl, data):
 
     return str(response.status_code), str(response.text)
 
+def launchwifi():
+
+    cmd = '/app/wifi-connect -o 8080 --ui-directory custom-ui'.split()
+
+    p = subprocess.Popen(cmd, stdout = subprocess.PIPE,
+                            stderr=subprocess.PIPE,
+                            stdin=subprocess.PIPE)
+
+    print("Api-v1: -WiFi Launch- " + p.returncode)
+
+    return p.returncode
+
 class connectionstatus(Resource):
     def get(self):
 
         run = os.popen('iwgetid -r').read().strip()
-        print(run)
 
         if run:
              out = "up"
         else:
 
-            curlwifi = os.system('ping -c 1 -w 1 -I wlan0 192.168.42.1 > /dev/null')
+            curlwifi = os.system('ping -c 1 -w 1 -I wlan0 192.168.42.1 >/dev/null 2>&1')
 
             if curlwifi == 0:
                 out = "down"
@@ -68,18 +79,6 @@ class journallogs(Resource):
 
         print("Api-v1: -Journald-logs- " + status + " - Journald logs sent to browser")
         return text
-
-class launchwifi(Resource):
-    def get(self):
-        cmd = '/app/wifi-connect -o 8080 --ui-directory custom-ui'.split()
-
-        p = subprocess.Popen(cmd, stdout = subprocess.PIPE,
-                                stderr=subprocess.PIPE,
-                                stdin=subprocess.PIPE)
-
-        print("Api-v1: -WiFi Launch- " + p.returncode)
-
-        return p.returncode
 
 class update(Resource):
     def get(self):
@@ -111,7 +110,7 @@ class wifireset(Resource):
 
             time.sleep(15)
             
-            startwifi = launchwifi().get()
+            startwifi = launchwifi()
 
             out = cleared, startwifi
 
@@ -127,7 +126,7 @@ if connected == "up":
     start = update().get()
     print("Api-v1: -API Started- Online - Return code: " + str(start))
 else:
-    start = launchwifi().get()
+    start = launchwifi()
     print("Api-v1: -API Started- Offline - Return code: " + str(start))
 
 api.add_resource(connectionstatus, '/v1/connectionstatus')
