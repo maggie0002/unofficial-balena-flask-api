@@ -1,14 +1,14 @@
-FROM balenalib/%%RESIN_MACHINE_NAME%%-debian-python
+FROM balenalib/%%BALENA_MACHINE_NAME%%-debian-python
 
 ## INSTALL PACKAGES
 
 # API
 
-RUN install_packages libdbus-glib-1-dev libgirepository1.0-dev && \
-    python3 -m pip install --no-cache-dir python-networkmanager==2.1 && \
-    apt-get purge --auto-remove libdbus-glib-1-dev libgirepository1.0-dev -y
+COPY requirements.txt /tmp/
 
-RUN python3 -m pip install --no-cache-dir flask-restful==0.3.8 requests==2.24.0
+RUN install_packages libdbus-glib-1-dev libgirepository1.0-dev && \
+    pip install -r /tmp/requirements.txt --no-deps --no-cache-dir && \
+    apt-get purge --auto-remove libdbus-glib-1-dev libgirepository1.0-dev -y
 
 # WIFI CONNECT
 
@@ -19,13 +19,15 @@ RUN install_packages \
 ## BUILD WI-FI CONNECT
 WORKDIR /app
 
-RUN curl https://api.github.com/repos/balena-io/wifi-connect/releases/tags/v4.4.0 -s \
-    | grep -hoP 'browser_download_url": "\K.*%%RESIN_ARCH%%\.tar\.gz' \
-    | xargs -n1 curl -Ls \
-    | tar -xvz -C /app/
+ARG VERSION="4.4.1"
+
+RUN curl -Ls "https://github.com/balena-io/wifi-connect/releases/download/v$VERSION/wifi-connect-v$VERSION-linux-%%BALENA_ARCH%%.tar.gz" \
+  | tar -xvz -C /app/
 
 ## CONFIGURE WIFI-CONNECT
 COPY scripts .
 
 ## WRAP-UP
 CMD ["python3", "start.py"]
+
+HEALTHCHECK --timeout=10s CMD curl --silent --fail http://127.0.0.1:9090/ || exit 1
