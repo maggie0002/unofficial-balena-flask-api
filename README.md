@@ -10,13 +10,13 @@ Current features include ability to:
 - Launch wifi-connect when network not available
 - Disconnect wifi-connect and clear the saved connection
 - Change the device hostname
-- Amend the wifi-connect SSID to include the last two digits of new hostnames in order to distinguish devices
+- Amend the wifi-connect SSID to include the last two digits of new hostname in order to distinguish devices
 - Retrive journald logs to your browser
 - Update the device containers from your Open Balena or Balena cloud instance
 
-By default, available on http://yourdeviceiporhostname:9090/v1/
-    connectionstatus
-    hostconfig/<yournewhostname>
-    journallogs
-    update
-    wifireset
+By default, available on http://yourdeviceiporhostname:9090/v1/-insert-one-of-following-variables-here-
+- connectionstatus
+- hostconfig/<yournewhostname>
+- journallogs
+- update
+- wifireset
