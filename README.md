@@ -16,7 +16,7 @@ Current features include ability to:
 
 By default, available on http://yourdeviceiporhostname:9090/v1/-insert-one-of-following-variables-here-
 - connectionstatus
-- hostconfig/<yournewhostname>
+- hostconfig/yournewhostnamehere
 - journallogs
 - update
 - wifireset
