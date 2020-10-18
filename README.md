@@ -7,10 +7,11 @@ This is not provided as a thoroughly tested container ready for production, but 
 Current features include ability to:
 
 - Check the connection status of the wifi
-- Launch wifi-connect when network not available
+- Automatically launch wifi-connect when network not available
 - Disconnect wifi-connect and clear the saved connection
+- Disconnect and clear all saved wifi connections
 - Change the device hostname
-- Amend the wifi-connect SSID to include the last two digits of new hostname in order to distinguish devices
+- Amend the wifi-connect SSID to to match the hostname when the hostname is changed
 - Retrive journald logs to your browser
 - Update the device containers from your Open Balena or Balena cloud instance
 
@@ -19,4 +20,5 @@ By default, available on http://yourdeviceiporhostname:9090/v1/-insert-one-of-fo
 - hostconfig/yournewhostnamehere
 - journallogs
 - update
-- wifireset
+- wififorget
+- wififorgetall
