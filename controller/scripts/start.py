@@ -1,5 +1,6 @@
-from flask import Flask, request, make_response, jsonify
+from flask import Flask, request, make_response
 from flask_restful import Resource, Api
+from resources.exitcodes import exitgen
 import os, requests, NetworkManager, time, socket, subprocess
 
 app = Flask(__name__)
@@ -32,143 +33,10 @@ def curl(request, balenaurl, data):
 
     return str(response.status_code), str(response.text)
     
-def exitgen(process, code, hostname):
-    with app.app_context():
-        if process == 'connectionstatus':
-
-            if code == 200:
-
-                ecode = make_response(
-                    jsonify(
-                        {"status": code},
-                            {"data": {
-                                "status": "connected",
-                                "message": "The device is connected to a wifi network.",
-                                "command": process
-                            }
-                        }
-                    ), code)
-
-            elif code == 206:
-
-                ecode = make_response(
-                    jsonify(
-                        {"status": code},
-                            {"data": {
-                                "status": "disconnected",
-                                "message": "The device is not connected to a wifi network.",
-                                "command": process
-                            }
-                        }
-                    ), code,)
-
-            elif code == 500:
-
-                ecode = make_response(
-                    jsonify(
-                        {"status": code},
-                            {"data": {
-                                "status": "error",
-                                "message": "The device is not connected to a wifi network, but the wifi-connect interface isn’t up. User needs to try again, or restart the device. ",
-                                "command": process
-                            }
-                        }
-                    ), code)
-
-            else:
-                ecode = "Unrecognised error code"
-
-        if process == 'hostconfig':
-            if code == 200:
-                ecode = make_response(
-                    jsonify(
-                        {"status": code},
-                            {"data": {
-                                "status": "success",
-                                "hostname": hostname,
-                                "message": "The hostname was updated.",
-                                "command": process
-                            }
-                        }
-                    ), code)
-
-            else:
-                print(hostname)
-                ecode = make_response(
-                    jsonify(
-                        {"status": code},
-                            {"data": {
-                                "status": "error",
-                                "hostname": hostname,
-                                "message": "The hostname could not be updated.",
-                                "command": process
-                            }
-                        }
-                    ), code)
-
-        if process == 'wififorget' or process == 'wififorgetall':
-
-            if code == 204:
-
-                ecode = make_response(
-                    jsonify(
-                        {"status": code},
-                            {"data": {
-                                "status": "empty",
-                                "message": "There were no wifi-connections to delete.",
-                                "command": process
-                            }
-                        }
-                    ), code)            
-
-            if code == 409:
-
-                ecode = make_response(
-                    jsonify(
-                        {"status": code},
-                            {"data": {
-                                "status": "conflict",
-                                "message": "The device is already disconnected. No action taken.",
-                                "command": process
-                            }
-                        }
-                    ), code)
-
-            elif code == 500:
-
-                ecode = make_response(
-                    jsonify(
-                        {"status": code},
-                            {"data": {
-                                "status": "error",
-                                "message": "The device is connected but could not reset the connection.",
-                                "command": process
-                            }
-                        }
-                    ), code)
-
-            elif code == 200:
-
-                ecode = make_response(
-                    jsonify(
-                        {"status": code},
-                            {"data": {
-                                "status": "success",
-                                "message": "The connection was reset.",
-                                "command": process
-                            }
-                        }
-                    ), code)
-
-            else:
-                ecode = "Unrecognised error code"
-
-    return ecode
-
 def launchwifi():
     currenthostname = socket.gethostname()
-    if currenthostname == 'your-default-hostname':
-        cmd = '/app/wifi-connect -s 'your-default-hostname' -o 8080 --ui-directory custom-ui'.split()
+    if currenthostname == 'yourhostname':
+        cmd = '/app/wifi-connect -s deafult-ssid -o 8080 --ui-directory custom-ui'.split()
     else:
         cmd = f'/app/wifi-connect -s {str(currenthostname)} -o 8080 --ui-directory custom-ui'.split()
 
@@ -252,10 +120,10 @@ class wififorget(Resource):
                             + connection.GetSettings()["connection"]["id"]
                         )
 
-                        status = 200
                         connection.Delete()
+                        status = 200
 
-            time.sleep(15)
+            time.sleep(5)
             
             startwifi = launchwifi()
 
@@ -290,7 +158,6 @@ class wififorgetall(Resource):
 
 connected = os.popen('iwgetid -r').read().strip()
 if connected:
-    time.sleep(15)
     start = update().get()
     print("Api-v1 - API Started - Device connected to local wifi")
 else:
