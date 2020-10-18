@@ -69,7 +69,7 @@ def exitgen(process, code, hostname):
                         {"status": code},
                             {"data": {
                                 "status": "error",
-                                "message": "The wifi is not connected to a router, but the wifi-connect interface isn’t up. User needs to try again, or restart the device. ",
+                                "message": "The device is not connected to a wifi network, but the wifi-connect interface isn’t up. User needs to try again, or restart the device. ",
                                 "command": process
                             }
                         }
@@ -85,7 +85,7 @@ def exitgen(process, code, hostname):
                         {"status": code},
                             {"data": {
                                 "status": "success",
-                                "new-hostname": hostname,
+                                "hostname": hostname,
                                 "message": "The hostname was updated.",
                                 "command": process
                             }
@@ -99,14 +99,27 @@ def exitgen(process, code, hostname):
                         {"status": code},
                             {"data": {
                                 "status": "error",
-                                "new-hostname": hostname,
+                                "hostname": hostname,
                                 "message": "The hostname could not be updated.",
                                 "command": process
                             }
                         }
                     ), code)
 
-        if process == 'wifireset':
+        if process == 'wififorget' or process == 'wififorgetall':
+
+            if code == 204:
+
+                ecode = make_response(
+                    jsonify(
+                        {"status": code},
+                            {"data": {
+                                "status": "empty",
+                                "message": "There were no wifi-connections to delete.",
+                                "command": process
+                            }
+                        }
+                    ), code)            
 
             if code == 409:
 
@@ -115,7 +128,7 @@ def exitgen(process, code, hostname):
                         {"status": code},
                             {"data": {
                                 "status": "conflict",
-                                "message": "The device is already disconnected, cannot be reset.",
+                                "message": "The device is already disconnected. No action taken.",
                                 "command": process
                             }
                         }
@@ -154,16 +167,24 @@ def exitgen(process, code, hostname):
 
 def launchwifi():
     currenthostname = socket.gethostname()
-    if currenthostname == 'your-app-name':
-        cmd = '/app/wifi-connect -s your-app-name -o 8080 --ui-directory custom-ui'.split()
+    if currenthostname == 'your-default-hostname':
+        cmd = '/app/wifi-connect -s 'your-default-hostname' -o 8080 --ui-directory custom-ui'.split()
     else:
-        cmd = f'/app/wifi-connect -s your-app-name-{str(currenthostname)[-2:]} -o 8080 --ui-directory custom-ui'.split()
+        cmd = f'/app/wifi-connect -s {str(currenthostname)} -o 8080 --ui-directory custom-ui'.split()
 
     p = subprocess.Popen(cmd, stdout = subprocess.PIPE,
                             stderr=subprocess.PIPE,
                             stdin=subprocess.PIPE)
-    print("Api-v1 - Launchwifi: Wifi-Connect launched.")
-    return str(p.returncode)
+
+    with app.app_context():
+        if p.returncode == None:
+            exitstatus = make_response("Api-v1 - Launchwifi: Wifi-Connect launched.", 200)
+        else:
+            exitstatus = make_response("Api-v1 - Launchwifi: Wifi-Connect launch failure.", 500)
+
+    print(exitstatus.data.decode("utf-8"), exitstatus.status_code)
+
+    return exitstatus
 
 class connectionstatus(Resource):
     def get(self):
@@ -209,17 +230,17 @@ class update(Resource):
 
         exitstatus = make_response(text, status)
 
-        print("Api-v1 - Update: " + str(exitstatus.json))
+        print("Api-v1 - Update: " + exitstatus.data.decode("utf-8"), exitstatus.status_code)
 
         return exitstatus
 
-class wifireset(Resource):
+class wififorget(Resource):
     def get(self):
 
         status = 500
         checkconnection = connectionstatus().get()
     
-        if checkconnection == 0:
+        if checkconnection.status_code == 200:
             
             currentssid = os.popen('iwgetid -r').read().strip()
             connections = NetworkManager.Settings.ListConnections()
@@ -227,6 +248,9 @@ class wifireset(Resource):
             for connection in connections:
                 if connection.GetSettings()["connection"]["type"] == "802-11-wireless":
                     if connection.GetSettings()["802-11-wireless"]["ssid"] == currentssid:
+                        print("Api-v1 - Wififorget: Deleting connection "
+                            + connection.GetSettings()["connection"]["id"]
+                        )
 
                         status = 200
                         connection.Delete()
@@ -235,31 +259,50 @@ class wifireset(Resource):
             
             startwifi = launchwifi()
 
-            if startwifi != 200:
-                exitstatus = 500
+            if startwifi.status_code != 200:
+                status = 500
 
-        elif checkconnection == 1:
+        else:
             status = 409
 
         exitstatus = exitgen(self.__class__.__name__, int(status), 0)
 
-        print("Api-v1 - Wifireset: " + str(exitstatus.json)) 
+        print("Api-v1 - Wififorget: " + str(exitstatus.json)) 
         return exitstatus
 
-connected = connectionstatus().get()
-if connected == 200:
+class wififorgetall(Resource):
+    def get(self):
+        status = 204
+        connections = NetworkManager.Settings.ListConnections()
+
+        for connection in connections:
+            if connection.GetSettings()["connection"]["type"] == "802-11-wireless":
+                print("Api-v1 - Wififorgetall: Deleting connection "
+                    + connection.GetSettings()["connection"]["id"]
+                )
+                status = 200
+                connection.Delete()
+
+        exitstatus = exitgen(self.__class__.__name__, int(status), 0)
+
+        print("Api-v1 - Wififorgetall: " + str(exitstatus.json)) 
+        return exitstatus
+
+connected = os.popen('iwgetid -r').read().strip()
+if connected:
     time.sleep(15)
     start = update().get()
-    print("Api-v1 - API Started - Online")
+    print("Api-v1 - API Started - Device connected to local wifi")
 else:
     start = launchwifi()
-    print("Api-v1 - API Started - Offline")
+    print("Api-v1 - API Started - Controller launched")
 
 if __name__ == '__main__':
     api.add_resource(connectionstatus, '/v1/connectionstatus')
     api.add_resource(hostconfig, '/v1/hostconfig/<hostname>') 
     api.add_resource(journallogs, '/v1/journallogs')
     api.add_resource(update, '/v1/update')
-    api.add_resource(wifireset, '/v1/wifireset')
+    api.add_resource(wififorget, '/v1/wififorget')
+    api.add_resource(wififorgetall, '/v1/wififorgetall')
 
     app.run(port=9090,host='0.0.0.0')
