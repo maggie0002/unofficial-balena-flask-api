@@ -22,3 +22,5 @@ By default, available on http://yourdeviceiporhostname:9090/v1/-insert-one-of-fo
 - update
 - wififorget
 - wififorgetall
+
+It is likely that updates to this repo will be breaking changes, prepare to re-review code before use. 
