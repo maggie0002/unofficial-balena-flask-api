@@ -1,4 +1,4 @@
-from flask import Flask, request, make_response
+from flask import Flask, request, make_response, jsonify
 from flask_restful import Resource, Api
 from resources.exitcodes import exitgen
 import os, requests, NetworkManager, time, socket, subprocess
@@ -31,7 +31,14 @@ def curl(request, balenaurl, data):
             headers={"Content-Type": "application/json"},
         )
 
-    return str(response.status_code), str(response.text)
+    elif request == 'get':
+
+        response = requests.get(
+            f'{BALENA_SUPERVISOR_ADDRESS}{balenaurl}{BALENA_SUPERVISOR_API_KEY}',
+            headers={"Content-Type": "application/json"},
+        )
+
+    return response
     
 def launchwifi():
     currenthostname = socket.gethostname()
@@ -73,34 +80,52 @@ class connectionstatus(Resource):
         print("Api-v1 - Connectionstatus: " + str(exitstatus.json))
         return exitstatus
 
+class device(Resource):
+    def get(self):
+
+        response = curl('get', '/v1/device?apikey=', '')
+
+        print("Api-v1 - Device: Device data returned.")
+
+        return response.json()
+
 class hostconfig(Resource):
     def get(self, hostname):
 
-        status, text = curl('patch', '/v1/device/host-config?apikey=', '{"network": {"hostname": "%s"}}'%(hostname))
+        response = curl('patch', '/v1/device/host-config?apikey=', '{"network": {"hostname": "%s"}}'%(hostname))
             
-        exitstatus = exitgen(self.__class__.__name__, int(status), hostname)
+        exitstatus = exitgen(self.__class__.__name__, int(response.status_code), hostname)
         print("Api-v1 - Hostconfig: " + str(exitstatus.json))
         return exitstatus
 
 class journallogs(Resource):
     def get(self):
 
-        status, text = curl('post', '/v2/journal-logs?apikey=', '("follow", "false", "all", "true", "format", "short")')
+        response = curl('post', '/v2/journal-logs?apikey=', '("follow", "false", "all", "true", "format", "short")')
 
         print("Api-v1 - Journald-logs: Available logs returned.")
 
-        return text
+        return response.text
 
 class update(Resource):
     def get(self):
 
-        status, text = curl('post', '/v1/update?apikey=', '("force", "true")')
+        response = curl('post', '/v1/update?apikey=', '("force", "true")')
 
-        exitstatus = make_response(text, status)
+        exitstatus = make_response(response.text, response.status_code)
 
         print("Api-v1 - Update: " + exitstatus.data.decode("utf-8"), exitstatus.status_code)
 
         return exitstatus
+
+class uuid(Resource):
+    def get(self):
+        uuid = os.popen('printenv BALENA_DEVICE_UUID').read().strip()
+
+        response = make_response(jsonify(
+                    {"UUID": uuid}), 200)
+        print("Api-v1 - UUID: Device UUID returned.")
+        return response
 
 class wififorget(Resource):
     def get(self):
@@ -166,9 +191,11 @@ else:
 
 if __name__ == '__main__':
     api.add_resource(connectionstatus, '/v1/connectionstatus')
+    api.add_resource(device, '/v1/device')
     api.add_resource(hostconfig, '/v1/hostconfig/<hostname>') 
     api.add_resource(journallogs, '/v1/journallogs')
     api.add_resource(update, '/v1/update')
+    api.add_resource(uuid, '/v1/uuid')
     api.add_resource(wififorget, '/v1/wififorget')
     api.add_resource(wififorgetall, '/v1/wififorgetall')
 
