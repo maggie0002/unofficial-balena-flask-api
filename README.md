@@ -14,12 +14,16 @@ Current features include ability to:
 - Amend the wifi-connect SSID to to match the hostname when the hostname is changed
 - Retrive journald logs to your browser
 - Update the device containers from your Open Balena or Balena cloud instance
+- Get the device UUID
+- Get device info
 
 By default, available on http://yourdeviceiporhostname:9090/v1/-insert-one-of-following-variables-here-
 - connectionstatus
+- device
 - hostconfig/yournewhostnamehere
 - journallogs
 - update
+- uuid
 - wififorget
 - wififorgetall
 
