@@ -43,9 +43,9 @@ def curl(request, balenaurl, data):
 def launchwifi():
     currenthostname = socket.gethostname()
     if currenthostname == 'yourhostname':
-        cmd = '/app/wifi-connect -s deafult-ssid -o 8080 --ui-directory custom-ui'.split()
+        cmd = '/app/common/wifi-connect/wifi-connect -s deafult-ssid -o 8080 --ui-directory custom-ui'.split()
     else:
-        cmd = f'/app/wifi-connect -s {str(currenthostname)} -o 8080 --ui-directory custom-ui'.split()
+        cmd = f'/app/common/wifi-connect/wifi-connect -s {str(currenthostname)} -o 8080 --ui-directory custom-ui'.split()
 
     p = subprocess.Popen(cmd, stdout = subprocess.PIPE,
                             stderr=subprocess.PIPE,
