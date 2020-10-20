@@ -183,6 +183,7 @@ class wififorget(Resource):
 class wififorgetall(Resource):
     def get(self):
         status = 204
+        checkconnection = connectionstatus().get()
         connections = NetworkManager.Settings.ListConnections()
 
         for connection in connections:
@@ -190,8 +191,19 @@ class wififorgetall(Resource):
                 print("Api-v1 - Wififorgetall: Deleting connection "
                     + connection.GetSettings()["connection"]["id"]
                 )
-                status = 200
                 connection.Delete()
+                status = 200
+                
+        if checkconnection.status_code == 200 and status == 200:
+            time.sleep(5)
+            
+            startwifi = launchwifi()
+
+            if startwifi.status_code != 200:
+                status = 500
+
+        else:
+            status = 500
 
         exitstatus = exitgen(self.__class__.__name__, int(status), 0)
 
