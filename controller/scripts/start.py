@@ -3,6 +3,11 @@ from flask_restful import Resource, Api
 from resources.exitcodes import exitgen
 import os, requests, NetworkManager, time, subprocess
 
+#Required variables to be set by user#
+deafultssid = 'choose-a-default-ssid-here'
+defaulthostname = 'put-device-hostname-you-built-your-device-with-here'
+#####################################
+
 app = Flask(__name__)
 
 api = Api(app)
@@ -43,8 +48,8 @@ def curl(request, balenaurl, data):
 def launchwifi():
     currenthostname = curl('get', '/v1/device/host-config?apikey=', '')
     if currenthostname.json()["network"]["hostname"]:
-        if currenthostname.json()["network"]["hostname"] == 'yourhostname':
-            cmd = '/app/common/wifi-connect/wifi-connect -s deafult-ssid -o 8080 --ui-directory custom-ui'.split()
+        if currenthostname.json()["network"]["hostname"] == defaulthostname:
+            cmd = f'/app/common/wifi-connect/wifi-connect -s {deafultssid} -o 8080 --ui-directory custom-ui'.split()
         else:
             cmd = f'/app/common/wifi-connect/wifi-connect -s {currenthostname.json()["network"]["hostname"]} -o 8080 --ui-directory custom-ui'.split()
 
