@@ -1,7 +1,7 @@
 from flask import Flask, request, make_response, jsonify
 from flask_restful import Resource, Api
 from resources.exitcodes import exitgen
-import os, requests, NetworkManager, time, subprocess
+import os, requests, NetworkManager, time, subprocess, logging
 
 #Required variables to be set by user#
 deafultssid = 'choose-a-default-ssid-here'
@@ -9,6 +9,9 @@ defaulthostname = 'put-device-hostname-you-built-your-device-with-here'
 #####################################
 
 app = Flask(__name__)
+
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.ERROR)
 
 api = Api(app)
 
