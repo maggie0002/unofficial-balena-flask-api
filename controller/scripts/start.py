@@ -89,6 +89,10 @@ class device(Resource):
 
         return response.json()
 
+class healthcheck(Resource):
+        def get(self):
+            return "ok"
+
 class hostconfig(Resource):
     def get(self, hostname):
 
@@ -192,6 +196,7 @@ else:
 if __name__ == '__main__':
     api.add_resource(connectionstatus, '/v1/connectionstatus')
     api.add_resource(device, '/v1/device')
+    api.add_resource(healthcheck, '/')
     api.add_resource(hostconfig, '/v1/hostconfig/<hostname>') 
     api.add_resource(journallogs, '/v1/journallogs')
     api.add_resource(update, '/v1/update')
