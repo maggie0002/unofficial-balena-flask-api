@@ -1,7 +1,7 @@
 from flask import Flask, request, make_response, jsonify
 from flask_restful import Resource, Api
 from resources.exitcodes import exitgen
-import os, requests, NetworkManager, time, socket, subprocess
+import os, requests, NetworkManager, time, subprocess
 
 app = Flask(__name__)
 
@@ -41,23 +41,28 @@ def curl(request, balenaurl, data):
     return response
     
 def launchwifi():
-    currenthostname = socket.gethostname()
-    if currenthostname == 'yourhostname':
-        cmd = '/app/common/wifi-connect/wifi-connect -s deafult-ssid -o 8080 --ui-directory custom-ui'.split()
-    else:
-        cmd = f'/app/common/wifi-connect/wifi-connect -s {str(currenthostname)} -o 8080 --ui-directory custom-ui'.split()
-
-    p = subprocess.Popen(cmd, stdout = subprocess.PIPE,
-                            stderr=subprocess.PIPE,
-                            stdin=subprocess.PIPE)
-
-    with app.app_context():
-        if p.returncode == None:
-            exitstatus = make_response("Api-v1 - Launchwifi: Wifi-Connect launched.", 200)
+    currenthostname = curl('get', '/v1/device/host-config?apikey=', '')
+    if currenthostname.json()["network"]["hostname"]:
+        if currenthostname.json()["network"]["hostname"] == 'yourhostname':
+            cmd = '/app/common/wifi-connect/wifi-connect -s deafult-ssid -o 8080 --ui-directory custom-ui'.split()
         else:
-            exitstatus = make_response("Api-v1 - Launchwifi: Wifi-Connect launch failure.", 500)
+            cmd = f'/app/common/wifi-connect/wifi-connect -s {currenthostname.json()["network"]["hostname"]} -o 8080 --ui-directory custom-ui'.split()
 
-    print(exitstatus.data.decode("utf-8"), exitstatus.status_code)
+        p = subprocess.Popen(cmd, stdout = subprocess.PIPE,
+                                stderr=subprocess.PIPE,
+                                stdin=subprocess.PIPE)
+
+        with app.app_context():
+            if p.returncode == None:
+                exitstatus = make_response("Api-v1 - Launchwifi: Wifi-Connect launched.", 200)
+            else:
+                exitstatus = make_response("Api-v1 - Launchwifi: Wifi-Connect launch failure.", 500)
+
+        print(exitstatus.data.decode("utf-8"), exitstatus.status_code)
+
+    else:
+        print("Api-v1 - Launchwifi: Hostname is blank. This is a fatal error.")
+        exitstatus = make_response("Hostname is blank. This is a fatal error.", 500)
 
     return exitstatus
 
@@ -184,6 +189,15 @@ class wififorgetall(Resource):
 
         print("Api-v1 - Wififorgetall: " + str(exitstatus.json)) 
         return exitstatus
+
+containerhostname = os.popen('hostname').read().strip()
+devicehostname = curl('get', '/v1/device/host-config?apikey=', '')
+
+if containerhostname != devicehostname.json()["network"]["hostname"]:
+    print("Container hostname and device hostname do not match. Likely a hostname" + \
+    "change has been performed. Balena Supervisor should detect this and rebuild " + \
+    "the container shortly. Waiting 90 seconds before continuing anyway.")
+    time.sleep(90)
 
 connected = os.popen('iwgetid -r').read().strip()
 if connected:
