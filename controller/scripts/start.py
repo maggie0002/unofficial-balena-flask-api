@@ -193,7 +193,7 @@ class wififorgetall(Resource):
                 )
                 connection.Delete()
                 status = 200
-                
+
         if checkconnection.status_code == 200 and status == 200:
             time.sleep(5)
             
@@ -201,9 +201,6 @@ class wififorgetall(Resource):
 
             if startwifi.status_code != 200:
                 status = 500
-
-        else:
-            status = 500
 
         exitstatus = exitgen(self.__class__.__name__, int(status), 0)
 

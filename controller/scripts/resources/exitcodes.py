@@ -108,7 +108,7 @@ def exitgen(process, code, hostname):
                     {"status": code},
                         {"data": {
                             "status": "error",
-                            "message": "The device is connected but could not reset the connection.",
+                            "message": "The device is connected but could not restart the connection.",
                             "command": process
                         }
                     }
