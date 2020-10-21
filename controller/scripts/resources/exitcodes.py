@@ -75,6 +75,37 @@ def exitgen(process, code, hostname):
 
     if process == 'wififorget' or process == 'wififorgetall':
 
+        if code == 202:
+            ecode = make_response(
+                jsonify(
+                    {"status": code},
+                        {"data": {
+                            "status": "accepted",
+                            "message": "Reset request sent.",
+                            "command": process
+                        }
+                    }
+                ), code
+            )
+
+        elif code == 409: 
+            ecode = make_response(
+                jsonify(
+                    {"status": code},
+                        {"data": {
+                            "status": "conflict",
+                            "message": "The device is already disconnected. No action taken.",
+                            "command": process
+                        }
+                    }
+                ), code
+            )
+
+        else:
+            ecode = "Unrecognised error code"
+
+    if process == 'wififorgetrun' or process == 'wififorgetallrun':
+
         if code == 204:
 
             ecode = make_response(
@@ -88,7 +119,7 @@ def exitgen(process, code, hostname):
                     }
                 ), code)            
 
-        if code == 409:
+        elif code == 409:
 
             ecode = make_response(
                 jsonify(

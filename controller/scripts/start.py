@@ -1,7 +1,7 @@
 from flask import Flask, request, make_response, jsonify
 from flask_restful import Resource, Api
 from resources.exitcodes import exitgen
-import os, requests, NetworkManager, time, subprocess, logging
+import os, requests, NetworkManager, time, subprocess, logging, threading
 
 #Required variables to be set by user#
 deafultssid = 'choose-a-default-ssid-here'
@@ -76,6 +76,98 @@ def launchwifi():
         exitstatus = make_response("Hostname is blank. This is a fatal error.", 500)
 
     return exitstatus
+
+def wififorgetrun():
+    with app.app_context():
+        #Wait 5 seconds so user gets return code before disconnecting
+        time.sleep(5)
+
+        #Set default status to 409 unless action taken below
+        status = 409
+
+        #Get the name of the current wifi network
+        currentssid = os.popen('iwgetid -r').read().strip()
+
+        if currentssid:
+
+            #Get a list of all connections
+            connections = NetworkManager.Settings.ListConnections()
+
+            for connection in connections:
+                if connection.GetSettings()["connection"]["type"] == "802-11-wireless":
+                    if connection.GetSettings()["802-11-wireless"]["ssid"] == currentssid:
+                        print("Api-v1 - Wififorget: Deleting connection "
+                            + connection.GetSettings()["connection"]["id"]
+                        )
+
+                        #Delete the identified connection and change status code to 200 (success)
+                        connection.Delete()
+                        status = 200
+
+        else:
+
+            status = 500
+
+        #If wifi-connect didn't launch, change status code to 500 (internal server error)
+        if status == 200:
+            #Wait before trying to launch wifi-connect
+            time.sleep(5)
+            
+            startwifi = launchwifi()
+
+            if startwifi.status_code != 200:
+                status = 500
+
+        exitstatus = exitgen("wififorgetrun", int(status), 0)
+
+        print(exitstatus.data.decode("utf-8"), exitstatus.status_code)
+        return exitstatus
+
+def wififorgetallrun():
+    with app.app_context():
+        #Wait 5 seconds so user gets return code before disconnecting
+        time.sleep(5)
+
+        #Set default status to 204 (nothing to delete)
+        status = 204
+
+        #Check and store the current connection state
+        checkconnection = connectionstatus().get()
+
+        #Get a list of all connections
+        connections = NetworkManager.Settings.ListConnections()
+
+        for connection in connections:
+            if connection.GetSettings()["connection"]["type"] == "802-11-wireless":
+                print("Api-v1 - Wififorgetall: Deleting connection "
+                    + connection.GetSettings()["connection"]["id"]
+                )
+
+                #Delete the identified connection and change status code to 200 (success)
+                connection.Delete()
+                status = 200
+
+        #If connection status when starting was 'connected' and a network has been deleted
+        if checkconnection.status_code == 200 and status == 200:
+
+            #Wait before trying to launch wifi-connect
+            time.sleep(5)
+            
+            startwifi = launchwifi()
+
+            #If wifi-connect didn't launch, change status code to 500 (internal server error)
+            if startwifi.status_code != 200:
+                status = 500
+
+        #Or if connection status when starting was 'connected' and a network has not been deleted
+        elif checkconnection.status_code == 200 and status != 200:
+            #Set error code to 500, failed to delete the attached network
+            status = 500
+
+        exitstatus = exitgen("wififorgetallrun", int(status), 0)
+
+        print("Api-v1 - Wififorgetall: " + str(exitstatus.json)) 
+        return exitstatus
 
 class connectionstatus(Resource):
     def get(self):
@@ -153,92 +245,33 @@ class uuid(Resource):
 class wififorget(Resource):
     def get(self):
 
-        #Set default status to 500 unless action taken below
-        status = 500
-
         #Check and store the current connection state
         checkconnection = connectionstatus().get()
-    
+
         #If the device is connected to a wifi network
         if checkconnection.status_code == 200:
 
-            #Get the name of the current wifi network
-            currentssid = os.popen('iwgetid -r').read().strip()
+            wififorget = threading.Thread(target=wififorgetrun, name="wififorgetrun")
+            wififorget.start()
+            status = 202
 
-            #Get a list of all connections
-            connections = NetworkManager.Settings.ListConnections()
-
-            for connection in connections:
-                if connection.GetSettings()["connection"]["type"] == "802-11-wireless":
-                    if connection.GetSettings()["802-11-wireless"]["ssid"] == currentssid:
-                        print("Api-v1 - Wififorget: Deleting connection "
-                            + connection.GetSettings()["connection"]["id"]
-                        )
-
-                        #Delete the identified connection and change status code to 200 (success)
-                        connection.Delete()
-                        status = 200
-
-            #Wait before trying to launch wifi-connect
-            time.sleep(5)
-            
-            startwifi = launchwifi()
-
-            #If wifi-connect didn't launch, change status code to 500 (internal server error)
-            if startwifi.status_code != 200:
-                status = 500
-        
-        #If the device isn't connected to a wifi network return an error that there is nothing to delete
         else:
+            
             status = 409
-
-        exitstatus = exitgen(self.__class__.__name__, int(status), 0)
-
-        print("Api-v1 - Wififorget: " + str(exitstatus.json)) 
+        
+        exitstatus = exitgen(self.__class__.__name__, status, 0)
+        print("Api-v1 - Wififorget: Accepted")
         return exitstatus
 
 class wififorgetall(Resource):
     def get(self):
 
-        #Set default status to 204 (nothing to delete)
-        status = 204
-
-        #Check and store the current connection state
-        checkconnection = connectionstatus().get()
-
-        #Get a list of all connections
-        connections = NetworkManager.Settings.ListConnections()
-
-        for connection in connections:
-            if connection.GetSettings()["connection"]["type"] == "802-11-wireless":
-                print("Api-v1 - Wififorgetall: Deleting connection "
-                    + connection.GetSettings()["connection"]["id"]
-                )
-
-                #Delete the identified connection and change status code to 200 (success)
-                connection.Delete()
-                status = 200
-
-        #If connection status when starting was 'connected' and a network has been deleted
-        if checkconnection.status_code == 200 and status == 200:
-
-            #Wait before trying to launch wifi-connect
-            time.sleep(5)
-            
-            startwifi = launchwifi()
-
-            #If wifi-connect didn't launch, change status code to 500 (internal server error)
-            if startwifi.status_code != 200:
-                status = 500
-
-        #Or if connection status when starting was 'connected' and a network has not been deleted
-        elif checkconnection.status_code == 200 and status != 200:
-            #Set error code to 500, failed to delete the attached network
-            status = 500
-
-        exitstatus = exitgen(self.__class__.__name__, int(status), 0)
-
-        print("Api-v1 - Wififorgetall: " + str(exitstatus.json)) 
+        wififorgetall = threading.Thread(target=wififorgetallrun, name="wififorgetallrun")
+        wififorgetall.start()
+        status = 202
+        
+        exitstatus = exitgen(self.__class__.__name__, status, 0)
+        print("Api-v1 - Wififorget: Accepted")
         return exitstatus
 
 #Fetch container hostname and device hostname
