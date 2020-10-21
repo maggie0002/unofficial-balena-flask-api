@@ -22,7 +22,7 @@ BALENA_SUPERVISOR_ADDRESS = os.environ['BALENA_SUPERVISOR_ADDRESS']
 
 print("Api-v1 - Starting API...")
 
-#Wait 15 seconds for any saved connections to establish
+#Wait for any saved connections to establish
 time.sleep(20)
 
 def curl(request, balenaurl, data):
@@ -179,7 +179,7 @@ class wififorget(Resource):
                         connection.Delete()
                         status = 200
 
-            #Wait 5 seconds before trying to launch wifi-connect
+            #Wait before trying to launch wifi-connect
             time.sleep(5)
             
             startwifi = launchwifi()
@@ -222,7 +222,7 @@ class wififorgetall(Resource):
         #If connection status when starting was 'connected' and a network has been deleted
         if checkconnection.status_code == 200 and status == 200:
 
-            #Wait 5 seconds before trying to launch wifi-connect
+            #Wait before trying to launch wifi-connect
             time.sleep(5)
             
             startwifi = launchwifi()
