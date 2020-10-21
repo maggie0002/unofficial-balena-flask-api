@@ -52,9 +52,9 @@ def launchwifi():
     currenthostname = curl('get', '/v1/device/host-config?apikey=', '')
     if currenthostname.json()["network"]["hostname"]:
         if currenthostname.json()["network"]["hostname"] == defaulthostname:
-            cmd = f'/app/common/wifi-connect/wifi-connect -s {deafultssid} -o 8080 --ui-directory custom-ui'.split()
+            cmd = f'/app/common/wifi-connect/wifi-connect -s {deafultssid} -o 8080 --ui-directory /app/common/wifi-connect/custom-ui'.split()
         else:
-            cmd = f'/app/common/wifi-connect/wifi-connect -s {currenthostname.json()["network"]["hostname"]} -o 8080 --ui-directory custom-ui'.split()
+            cmd = f'/app/common/wifi-connect/wifi-connect -s {currenthostname.json()["network"]["hostname"]} -o 8080 --ui-directory /app/common/wifi-connect/custom-ui'.split()
 
         p = subprocess.Popen(cmd, stdout = subprocess.PIPE,
                                 stderr=subprocess.PIPE,

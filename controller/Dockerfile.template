@@ -28,6 +28,7 @@ RUN curl -Ls "https://github.com/balena-io/wifi-connect/releases/download/v$VERS
 
 ## CONFIGURE WIFI-CONNECT
 COPY scripts .
+COPY custom-ui /app/common/wifi-connect/custom-ui/
 
 ## WRAP-UP
 CMD ["python3", "start.py"]
