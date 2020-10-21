@@ -10,17 +10,20 @@ defaulthostname = 'put-device-hostname-you-built-your-device-with-here'
 
 app = Flask(__name__)
 
+#Disable Werkzeug logging to avoid flooding with access logs
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
 
 api = Api(app)
 
+#Import Balena API keys
 BALENA_SUPERVISOR_API_KEY = os.environ['BALENA_SUPERVISOR_API_KEY']
 BALENA_SUPERVISOR_ADDRESS = os.environ['BALENA_SUPERVISOR_ADDRESS']
 
 print("Api-v1 - Starting API...")
 
-time.sleep(15)
+#Wait 15 seconds for any saved connections to establish
+time.sleep(20)
 
 def curl(request, balenaurl, data):
 
@@ -80,13 +83,16 @@ class connectionstatus(Resource):
         run = os.popen('iwgetid -r').read().strip()
 
         if run:
+            #Device is connected to wifi
             status = 200
         else:
             curlwifi = os.system('ping -c 1 -w 1 -I wlan0 192.168.42.1 >/dev/null 2>&1')
 
             if curlwifi == 0:
+                #Device is not connected to wifi
                 status = 206
             else:
+                #Device is not connected to a wifi network, but the wifi-connect interface isn’t up.
                 status = 500
 
         exitstatus = exitgen(self.__class__.__name__, int(status), 0)
@@ -147,12 +153,19 @@ class uuid(Resource):
 class wififorget(Resource):
     def get(self):
 
+        #Set default status to 500 unless action taken below
         status = 500
+
+        #Check and store the current connection state
         checkconnection = connectionstatus().get()
     
+        #If the device is connected to a wifi network
         if checkconnection.status_code == 200:
-            
+
+            #Get the name of the current wifi network
             currentssid = os.popen('iwgetid -r').read().strip()
+
+            #Get a list of all connections
             connections = NetworkManager.Settings.ListConnections()
 
             for connection in connections:
@@ -162,16 +175,20 @@ class wififorget(Resource):
                             + connection.GetSettings()["connection"]["id"]
                         )
 
+                        #Delete the identified connection and change status code to 200 (success)
                         connection.Delete()
                         status = 200
 
+            #Wait 5 seconds before trying to launch wifi-connect
             time.sleep(5)
             
             startwifi = launchwifi()
 
+            #If wifi-connect didn't launch, change status code to 500 (internal server error)
             if startwifi.status_code != 200:
                 status = 500
-
+        
+        #If the device isn't connected to a wifi network return an error that there is nothing to delete
         else:
             status = 409
 
@@ -182,8 +199,14 @@ class wififorget(Resource):
 
 class wififorgetall(Resource):
     def get(self):
+
+        #Set default status to 204 (nothing to delete)
         status = 204
+
+        #Check and store the current connection state
         checkconnection = connectionstatus().get()
+
+        #Get a list of all connections
         connections = NetworkManager.Settings.ListConnections()
 
         for connection in connections:
@@ -191,31 +214,45 @@ class wififorgetall(Resource):
                 print("Api-v1 - Wififorgetall: Deleting connection "
                     + connection.GetSettings()["connection"]["id"]
                 )
+
+                #Delete the identified connection and change status code to 200 (success)
                 connection.Delete()
                 status = 200
 
+        #If connection status when starting was 'connected' and a network has been deleted
         if checkconnection.status_code == 200 and status == 200:
+
+            #Wait 5 seconds before trying to launch wifi-connect
             time.sleep(5)
             
             startwifi = launchwifi()
 
+            #If wifi-connect didn't launch, change status code to 500 (internal server error)
             if startwifi.status_code != 200:
                 status = 500
+
+        #Or if connection status when starting was 'connected' and a network has not been deleted
+        elif checkconnection.status_code == 200 and status != 200:
+            #Set error code to 500, failed to delete the attached network
+            status = 500
 
         exitstatus = exitgen(self.__class__.__name__, int(status), 0)
 
         print("Api-v1 - Wififorgetall: " + str(exitstatus.json)) 
         return exitstatus
 
+#Fetch container hostname and device hostname
 containerhostname = os.popen('hostname').read().strip()
 devicehostname = curl('get', '/v1/device/host-config?apikey=', '')
 
+#Check container and device hostname match
 if containerhostname != devicehostname.json()["network"]["hostname"]:
     print("Container hostname and device hostname do not match. Likely a hostname" + \
     "change has been performed. Balena Supervisor should detect this and rebuild " + \
     "the container shortly. Waiting 90 seconds before continuing anyway.")
     time.sleep(90)
 
+#If connected to a wifi network then the update device, otherwise launch wifi-connect
 connected = os.popen('iwgetid -r').read().strip()
 if connected:
     start = update().get()
@@ -224,6 +261,7 @@ else:
     start = launchwifi()
     print("Api-v1 - API Started - Controller launched")
 
+#Configure API access points
 if __name__ == '__main__':
     api.add_resource(connectionstatus, '/v1/connectionstatus')
     api.add_resource(device, '/v1/device')
