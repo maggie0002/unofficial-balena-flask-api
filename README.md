@@ -4,6 +4,8 @@ This is a web interface to allow a browser to trigger a series of actions on Bal
 
 This is not provided as a thoroughly tested container ready for production, but as example approaches for input and further development. Assistance, pull requests or just discussion/input would be much appreaciated. 
 
+Don't forget to input your details at the top of the start.py file where indicated. 
+
 Current features include ability to:
 
 - Check the connection status of the wifi
