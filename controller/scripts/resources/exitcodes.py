@@ -1,164 +1,164 @@
 from flask import jsonify, make_response
 
-def exitgen(process, code, hostname):
-    if process == 'connectionstatus':
+def exitgen(*args):
+    if args[1] == 'connectionstatus':
 
-        if code == 200:
+        if args[2] == 200:
 
             ecode = make_response(
                 jsonify(
-                    {"status": code},
+                    {"status": args[2]},
                         {"data": {
                             "status": "connected",
                             "message": "The device is connected to a wifi network.",
-                            "command": process
+                            "command": args[1]
                         }
                     }
-                ), code)
+                ), args[2])
 
-        elif code == 206:
+        elif args[2] == 206:
 
             ecode = make_response(
                 jsonify(
-                    {"status": code},
+                    {"status": args[2]},
                         {"data": {
                             "status": "disconnected",
                             "message": "The device is not connected to a wifi network.",
-                            "command": process
+                            "command": args[1]
                         }
                     }
-                ), code,)
+                ), args[2],)
 
-        elif code == 500:
+        elif args[2] == 500:
 
             ecode = make_response(
                 jsonify(
-                    {"status": code},
+                    {"status": args[2]},
                         {"data": {
                             "status": "error",
                             "message": "The device is not connected to a wifi network, but the wifi-connect interface isn’t up. User needs to try again, or restart the device. ",
-                            "command": process
+                            "command": args[1]
                         }
                     }
-                ), code)
+                ), args[2])
 
         else:
-            ecode = "Unrecognised error code"
+            ecode = "Unrecognised error args[2]"
 
-    if process == 'hostconfig':
-        if code == 200:
+    if args[1] == 'hostconfig':
+        if args[2] == 200:
             ecode = make_response(
                 jsonify(
-                    {"status": code},
+                    {"status": args[2]},
                         {"data": {
                             "status": "success",
-                            "hostname": hostname,
+                            "hostname": args[3],
                             "message": "The hostname was updated.",
-                            "command": process
+                            "command": args[1]
                         }
                     }
-                ), code)
+                ), args[2])
 
         else:
-            print(hostname)
+            print(args[3])
             ecode = make_response(
                 jsonify(
-                    {"status": code},
+                    {"status": args[2]},
                         {"data": {
                             "status": "error",
-                            "hostname": hostname,
+                            "hostname": args[3],
                             "message": "The hostname could not be updated.",
-                            "command": process
+                            "command": args[1]
                         }
                     }
-                ), code)
+                ), args[2])
 
-    if process == 'wififorget' or process == 'wififorgetall':
+    if args[1] == 'wififorget' or args[1] == 'wififorgetall':
 
-        if code == 202:
+        if args[2] == 202:
             ecode = make_response(
                 jsonify(
-                    {"status": code},
+                    {"status": args[2]},
                         {"data": {
                             "status": "accepted",
                             "message": "Reset request sent.",
-                            "command": process
+                            "command": args[1]
                         }
                     }
-                ), code
+                ), args[2]
             )
 
-        elif code == 409: 
+        elif args[2] == 409: 
             ecode = make_response(
                 jsonify(
-                    {"status": code},
+                    {"status": args[2]},
                         {"data": {
                             "status": "conflict",
                             "message": "The device is already disconnected. No action taken.",
-                            "command": process
+                            "command": args[1]
                         }
                     }
-                ), code
+                ), args[2]
             )
 
         else:
-            ecode = "Unrecognised error code"
+            ecode = "Unrecognised error args[2]"
 
-    if process == 'wififorgetrun' or process == 'wififorgetallrun':
+    if args[1] == 'wififorgetrun' or args[1] == 'wififorgetallrun':
 
-        if code == 204:
+        if args[2] == 204:
 
             ecode = make_response(
                 jsonify(
-                    {"status": code},
+                    {"status": args[2]},
                         {"data": {
                             "status": "empty",
                             "message": "There were no wifi-connections to delete.",
-                            "command": process
+                            "command": args[1]
                         }
                     }
-                ), code)            
+                ), args[2])            
 
-        elif code == 409:
+        elif args[2] == 409:
 
             ecode = make_response(
                 jsonify(
-                    {"status": code},
+                    {"status": args[2]},
                         {"data": {
                             "status": "conflict",
                             "message": "The device is already disconnected. No action taken.",
-                            "command": process
+                            "command": args[1]
                         }
                     }
-                ), code)
+                ), args[2])
 
-        elif code == 500:
+        elif args[2] == 500:
 
             ecode = make_response(
                 jsonify(
-                    {"status": code},
+                    {"status": args[2]},
                         {"data": {
                             "status": "error",
                             "message": "Could not reset the connection.",
-                            "command": process
+                            "command": args[1]
                         }
                     }
-                ), code)
+                ), args[2])
 
-        elif code == 200:
+        elif args[2] == 200:
 
             ecode = make_response(
                 jsonify(
-                    {"status": code},
+                    {"status": args[2]},
                         {"data": {
                             "status": "success",
                             "message": "The connection was reset.",
-                            "command": process
+                            "command": args[1]
                         }
                     }
-                ), code)
+                ), args[2])
 
         else:
-            ecode = "Unrecognised error code"
+            ecode = "Unrecognised error args[2]"
 
     return ecode

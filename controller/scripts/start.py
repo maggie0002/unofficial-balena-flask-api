@@ -25,27 +25,27 @@ print("Api-v1 - Starting API...")
 #Wait for any saved connections to establish
 time.sleep(20)
 
-def curl(request, balenaurl, data):
+def curl(*args):
 
-    if request == 'post':
+    if args[1] == 'post':
         response = requests.post(
-            f'{BALENA_SUPERVISOR_ADDRESS}{balenaurl}{BALENA_SUPERVISOR_API_KEY}',
-            json=[data],
+            f'{BALENA_SUPERVISOR_ADDRESS}{args[2]}{BALENA_SUPERVISOR_API_KEY}',
+            json=[args[3]],
             headers={"Content-Type": "application/json"},
         )
 
-    elif request == 'patch':
+    elif args[1] == 'patch':
 
         response = requests.patch(
-            f'{BALENA_SUPERVISOR_ADDRESS}{balenaurl}{BALENA_SUPERVISOR_API_KEY}',
-            data=data,
+            f'{BALENA_SUPERVISOR_ADDRESS}{args[2]}{BALENA_SUPERVISOR_API_KEY}',
+            data=args[3],
             headers={"Content-Type": "application/json"},
         )
 
-    elif request == 'get':
+    elif args[1] == 'get':
 
         response = requests.get(
-            f'{BALENA_SUPERVISOR_ADDRESS}{balenaurl}{BALENA_SUPERVISOR_API_KEY}',
+            f'{BALENA_SUPERVISOR_ADDRESS}{args[2]}{BALENA_SUPERVISOR_API_KEY}',
             headers={"Content-Type": "application/json"},
         )
 
@@ -56,7 +56,7 @@ def launchwifi():
 
     if pingwifi != 0:
 
-        currenthostname = curl('get', '/v1/device/host-config?apikey=', '')
+        currenthostname = curl('get', '/v1/device/host-config?apikey=')
         if currenthostname.json()["network"]["hostname"]:
             if currenthostname.json()["network"]["hostname"] == defaulthostname:
                 cmd = f'/app/common/wifi-connect/wifi-connect -s {deafultssid} -o 8080 --ui-directory /app/common/wifi-connect/custom-ui'.split()
@@ -86,8 +86,8 @@ def launchwifi():
 
 def wififorgetrun():
     with app.app_context():
-        #Wait 5 seconds so user gets return code before disconnecting
-        time.sleep(5)
+        #Wait so user gets return code before disconnecting
+        time.sleep(3)
 
         #Set default status to 409 unless action taken below
         status = 409
@@ -125,15 +125,15 @@ def wififorgetrun():
             if startwifi.status_code != 200:
                 status = 500
 
-        exitstatus = exitgen("wififorgetrun", int(status), 0)
+        exitstatus = exitgen("wififorgetrun", int(status))
 
         print(exitstatus.data.decode("utf-8"), exitstatus.status_code)
         return exitstatus
 
 def wififorgetallrun():
     with app.app_context():
-        #Wait 5 seconds so user gets return code before disconnecting
-        time.sleep(5)
+        #Wait so user gets return code before disconnecting
+        time.sleep(3)
 
         #Set default status to 204 (nothing to delete)
         status = 204
@@ -171,7 +171,7 @@ def wififorgetallrun():
             #Set error code to 500, failed to delete the attached network
             status = 500
 
-        exitstatus = exitgen("wififorgetallrun", int(status), 0)
+        exitstatus = exitgen("wififorgetallrun", int(status))
 
         print("Api-v1 - Wififorgetall: " + str(exitstatus.json)) 
         return exitstatus
@@ -194,14 +194,14 @@ class connectionstatus(Resource):
                 #Device is not connected to a wifi network, but the wifi-connect interface isn’t up.
                 status = 500
 
-        exitstatus = exitgen(self.__class__.__name__, int(status), 0)
+        exitstatus = exitgen(self.__class__.__name__, int(status))
         print("Api-v1 - Connectionstatus: " + str(exitstatus.json))
         return exitstatus
 
 class device(Resource):
     def get(self):
 
-        response = curl('get', '/v1/device?apikey=', '')
+        response = curl('get', '/v1/device?apikey=')
 
         print("Api-v1 - Device: Device data returned.")
 
@@ -266,7 +266,7 @@ class wififorget(Resource):
             
             status = 409
         
-        exitstatus = exitgen(self.__class__.__name__, status, 0)
+        exitstatus = exitgen(self.__class__.__name__, status)
         print("Api-v1 - Wififorget: Accepted")
         return exitstatus
 
@@ -277,13 +277,13 @@ class wififorgetall(Resource):
         wififorgetall.start()
         status = 202
         
-        exitstatus = exitgen(self.__class__.__name__, status, 0)
+        exitstatus = exitgen(self.__class__.__name__, status)
         print("Api-v1 - Wififorget: Accepted")
         return exitstatus
 
 #Fetch container hostname and device hostname
 containerhostname = os.popen('hostname').read().strip()
-devicehostname = curl('get', '/v1/device/host-config?apikey=', '')
+devicehostname = curl('get', '/v1/device/host-config?apikey=')
 
 #Check container and device hostname match
 if containerhostname != devicehostname.json()["network"]["hostname"]:
