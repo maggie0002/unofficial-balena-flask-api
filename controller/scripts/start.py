@@ -27,25 +27,25 @@ time.sleep(20)
 
 def curl(*args):
 
-    if args[1] == 'post':
+    if args[0] == 'post':
         response = requests.post(
-            f'{BALENA_SUPERVISOR_ADDRESS}{args[2]}{BALENA_SUPERVISOR_API_KEY}',
-            json=[args[3]],
+            f'{BALENA_SUPERVISOR_ADDRESS}{args[1]}{BALENA_SUPERVISOR_API_KEY}',
+            json=[args[2]],
             headers={"Content-Type": "application/json"},
         )
 
-    elif args[1] == 'patch':
+    elif args[0] == 'patch':
 
         response = requests.patch(
-            f'{BALENA_SUPERVISOR_ADDRESS}{args[2]}{BALENA_SUPERVISOR_API_KEY}',
-            data=args[3],
+            f'{BALENA_SUPERVISOR_ADDRESS}{args[1]}{BALENA_SUPERVISOR_API_KEY}',
+            data=args[2],
             headers={"Content-Type": "application/json"},
         )
 
-    elif args[1] == 'get':
+    elif args[0] == 'get':
 
         response = requests.get(
-            f'{BALENA_SUPERVISOR_ADDRESS}{args[2]}{BALENA_SUPERVISOR_API_KEY}',
+            f'{BALENA_SUPERVISOR_ADDRESS}{args[1]}{BALENA_SUPERVISOR_API_KEY}',
             headers={"Content-Type": "application/json"},
         )
 
