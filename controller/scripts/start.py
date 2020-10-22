@@ -52,28 +52,35 @@ def curl(request, balenaurl, data):
     return response
     
 def launchwifi():
-    currenthostname = curl('get', '/v1/device/host-config?apikey=', '')
-    if currenthostname.json()["network"]["hostname"]:
-        if currenthostname.json()["network"]["hostname"] == defaulthostname:
-            cmd = f'/app/common/wifi-connect/wifi-connect -s {deafultssid} -o 8080 --ui-directory /app/common/wifi-connect/custom-ui'.split()
-        else:
-            cmd = f'/app/common/wifi-connect/wifi-connect -s {currenthostname.json()["network"]["hostname"]} -o 8080 --ui-directory /app/common/wifi-connect/custom-ui'.split()
+    pingwifi = os.system('ping -c 1 -w 1 -I wlan0 192.168.42.1 >/dev/null 2>&1')
 
-        p = subprocess.Popen(cmd, stdout = subprocess.PIPE,
-                                stderr=subprocess.PIPE,
-                                stdin=subprocess.PIPE)
+    if pingwifi != 0:
 
-        with app.app_context():
-            if p.returncode == None:
-                exitstatus = make_response("Api-v1 - Launchwifi: Wifi-Connect launched.", 200)
+        currenthostname = curl('get', '/v1/device/host-config?apikey=', '')
+        if currenthostname.json()["network"]["hostname"]:
+            if currenthostname.json()["network"]["hostname"] == defaulthostname:
+                cmd = f'/app/common/wifi-connect/wifi-connect -s {deafultssid} -o 8080 --ui-directory /app/common/wifi-connect/custom-ui'.split()
             else:
-                exitstatus = make_response("Api-v1 - Launchwifi: Wifi-Connect launch failure.", 500)
+                cmd = f'/app/common/wifi-connect/wifi-connect -s {currenthostname.json()["network"]["hostname"]} -o 8080 --ui-directory /app/common/wifi-connect/custom-ui'.split()
 
-        print(exitstatus.data.decode("utf-8"), exitstatus.status_code)
+            p = subprocess.Popen(cmd, stdout = subprocess.PIPE,
+                                    stderr=subprocess.PIPE,
+                                    stdin=subprocess.PIPE)
+
+            with app.app_context():
+                if p.returncode == None:
+                    exitstatus = make_response("Api-v1 - Launchwifi: Wifi-Connect launched.", 200)
+                else:
+                    exitstatus = make_response("Api-v1 - Launchwifi: Wifi-Connect launch failure.", 500)
+
+            print(exitstatus.data.decode("utf-8"), exitstatus.status_code)
+
+        else:
+            print("Api-v1 - Launchwifi: Hostname is blank. This is a fatal error.")
+            exitstatus = make_response("Hostname is blank. This is a fatal error.", 500)
 
     else:
-        print("Api-v1 - Launchwifi: Hostname is blank. This is a fatal error.")
-        exitstatus = make_response("Hostname is blank. This is a fatal error.", 500)
+        exitstatus = make_response("Api-v1 - Launchwifi: Wifi-Connect already running.", 500)
 
     return exitstatus
 
@@ -178,9 +185,9 @@ class connectionstatus(Resource):
             #Device is connected to wifi
             status = 200
         else:
-            curlwifi = os.system('ping -c 1 -w 1 -I wlan0 192.168.42.1 >/dev/null 2>&1')
+            pingwifi = os.system('ping -c 1 -w 1 -I wlan0 192.168.42.1 >/dev/null 2>&1')
 
-            if curlwifi == 0:
+            if pingwifi == 0:
                 #Device is not connected to wifi
                 status = 206
             else:
