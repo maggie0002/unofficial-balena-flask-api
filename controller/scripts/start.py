@@ -213,11 +213,15 @@ class healthcheck(Resource):
 
 class hostconfig(Resource):
     def get(self, hostname):
-
-        response = curl('patch', '/v1/device/host-config?apikey=', '{"network": {"hostname": "%s"}}'%(hostname))
+        if hostname != None:
+            response = curl('patch', '/v1/device/host-config?apikey=', '{"network": {"hostname": "%s"}}'%(hostname))
+                
+            exitstatus = exitgen(self.__class__.__name__, int(response.status_code), hostname)
+            print("Api-v1 - Hostconfig: " + str(exitstatus.json))
+        else:
+            exitstatus = exitgen(self.__class__.__name__, 500, hostname)
+            print("Api-v1 - Hostconfig: " + str(exitstatus.json))
             
-        exitstatus = exitgen(self.__class__.__name__, int(response.status_code), hostname)
-        print("Api-v1 - Hostconfig: " + str(exitstatus.json))
         return exitstatus
 
 class journallogs(Resource):

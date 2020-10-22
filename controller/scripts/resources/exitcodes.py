@@ -60,7 +60,6 @@ def exitgen(*args):
                 ), args[1])
 
         else:
-            print(args[2])
             ecode = make_response(
                 jsonify(
                     {"status": args[1]},
