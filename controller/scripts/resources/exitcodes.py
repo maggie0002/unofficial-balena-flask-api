@@ -1,4 +1,5 @@
 from flask import jsonify, make_response
+import resources.config, resources.globals
 
 def exitgen(*args):
     if args[0] == 'connectionstatus':
@@ -103,7 +104,7 @@ def exitgen(*args):
         else:
             ecode = "Unrecognised error args[1]"
 
-    if args[0] == 'wififorgetrun' or args[0] == 'wififorgetallrun':
+    if args[0] == 'forget' or args[0] == 'forgetall':
 
         if args[1] == 204:
 
