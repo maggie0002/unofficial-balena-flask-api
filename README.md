@@ -1,6 +1,6 @@
 # unofficial-balena-flask-api
 
-This is a web interface to allow a browser to trigger a series of actions on Balena OS devices. 
+This is a Flask web API to allow a browser to trigger a series of actions on Balena OS devices. 
 
 This is not provided as a thoroughly tested container ready for production, but as example approaches for input and further development. Assistance, pull requests or just discussion/input would be much appreaciated. 
 
