@@ -4,7 +4,7 @@ This is a Flask web API to allow a browser to trigger a series of actions on Bal
 
 This is not provided as a thoroughly tested container ready for production, but as example approaches for input and further development. Assistance, pull requests or just discussion/input would be much appreaciated. 
 
-Don't forget to configure with your details in /resources/config.py file where indicated. 
+Don't forget to configure with your details by creating /resources/config.py (see an example config file at /resources/config-example.py). 
 
 Current features include ability to:
 
