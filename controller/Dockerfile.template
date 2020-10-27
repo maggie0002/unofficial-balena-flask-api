@@ -21,13 +21,14 @@ WORKDIR /app
 
 RUN mkdir -p /app/common/wifi-connect
 
-ARG VERSION="4.4.1"
+ARG VERSION="4.4.3"
 
 RUN curl -Ls "https://github.com/balena-io/wifi-connect/releases/download/v$VERSION/wifi-connect-v$VERSION-linux-%%BALENA_ARCH%%.tar.gz" \
   | tar -xvz -C /app/common/wifi-connect
 
 ## CONFIGURE WIFI-CONNECT
 COPY scripts .
+COPY config.py /app/resources/config.py
 COPY custom-ui /app/common/wifi-connect/custom-ui/
 
 ## WRAP-UP
