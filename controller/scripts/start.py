@@ -24,7 +24,7 @@ if containerhostname != devicehostname.json()["network"]["hostname"]:
     "the container shortly. Waiting 90 seconds before continuing anyway.")
     time.sleep(90)
 
-#If connected to a wifi network then the update device, otherwise launch wifi-connect
+#If connected to a wifi network then update device, otherwise launch wifi-connect
 connected = os.popen('iwgetid -r').read().strip()
 if connected:
     start = update().get()
