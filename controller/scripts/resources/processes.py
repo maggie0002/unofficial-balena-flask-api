@@ -90,10 +90,6 @@ class wifi:
                             connection.Delete()
                             status = 200
 
-            else:
-
-                status = 500
-
             #If wifi-connect didn't launch, change status code to 500 (internal server error)
             if status == 200:
                 #Wait before trying to launch wifi-connect

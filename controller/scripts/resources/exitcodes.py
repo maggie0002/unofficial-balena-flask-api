@@ -94,7 +94,7 @@ def exitgen(*args):
                     {"status": args[1]},
                         {"data": {
                             "status": "conflict",
-                            "message": "The device is already disconnected. No action taken.",
+                            "message": "The device is not connected. No action taken.",
                             "command": args[0]
                         }
                     }
@@ -126,7 +126,7 @@ def exitgen(*args):
                     {"status": args[1]},
                         {"data": {
                             "status": "conflict",
-                            "message": "The device is already disconnected. No action taken.",
+                            "message": "No connection found to delete.",
                             "command": args[0]
                         }
                     }
@@ -139,7 +139,7 @@ def exitgen(*args):
                     {"status": args[1]},
                         {"data": {
                             "status": "error",
-                            "message": "Could not reset the connection.",
+                            "message": "Failed to start wifi-connect.",
                             "command": args[0]
                         }
                     }

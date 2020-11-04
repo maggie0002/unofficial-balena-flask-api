@@ -10,7 +10,7 @@ log.setLevel(logging.ERROR)
 
 print("Api-v1 - Starting API...")
 
-#Wait for any saved connections to establish
+#Wait for any saved connections to reconnect
 time.sleep(20)
 
 #Fetch container hostname and device hostname
