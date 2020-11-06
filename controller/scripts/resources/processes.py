@@ -72,98 +72,62 @@ def curl(**cmd):
 
 class wifi:
     def launch(self):
-        with resources.globals.app.app_context():
-            
-            try:
-                pingwifi = os.system('ping -c 1 -w 1 -I wlan0 192.168.42.1 >/dev/null 2>&1')
-            except:
-                pingwifi = 1
+    
+        try:
+            pingwifi = os.system('ping -c 1 -w 1 -I wlan0 192.168.42.1 >/dev/null 2>&1')
+        except:
+            pingwifi = 1
 
-            if pingwifi == 0:
-               return {'wifi': 'Wifi-Connect already running'}, 500
+        if pingwifi == 0:
+            return {'wifi': 'Wifi-Connect already running'}, 500
 
-            try:
-                currenthostname = os.popen('hostname').read().strip()
-            except:
-                currenthostname = resources.config.deafultssid
+        try:
+            currenthostname = os.popen('hostname').read().strip()
+        except:
+            currenthostname = resources.config.deafultssid
 
-            try:
-                currenthostname
-            except NameError:
-                currenthostname = resources.config.deafultssid
+        try:
+            currenthostname
+        except NameError:
+            currenthostname = resources.config.deafultssid
 
-            try:
-                resources.config.defaulthostname
-            except NameError:
-                resources.config.defaulthostname = 'welcome'
+        try:
+            resources.config.defaulthostname
+        except NameError:
+            resources.config.defaulthostname = 'welcome'
 
-            if currenthostname == resources.config.defaulthostname:
-                cmd = f'/app/common/wifi-connect/wifi-connect -s {resources.config.deafultssid} -o 8080 --ui-directory /app/common/wifi-connect/custom-ui'.split()
-            else:
-                cmd = f'/app/common/wifi-connect/wifi-connect -s {currenthostname} -o 8080 --ui-directory /app/common/wifi-connect/custom-ui'.split()
+        if currenthostname == resources.config.defaulthostname:
+            cmd = f'/app/common/wifi-connect/wifi-connect -s {resources.config.deafultssid} -o 8080 --ui-directory /app/common/wifi-connect/custom-ui'.split()
+        else:
+            cmd = f'/app/common/wifi-connect/wifi-connect -s {currenthostname} -o 8080 --ui-directory /app/common/wifi-connect/custom-ui'.split()
 
-            p = subprocess.Popen(cmd, stdout = subprocess.PIPE,
-                                    stderr=subprocess.PIPE,
-                                    stdin=subprocess.PIPE)
+        p = subprocess.Popen(cmd, stdout = subprocess.PIPE,
+                                stderr=subprocess.PIPE,
+                                stdin=subprocess.PIPE)
 
-            if not p.returncode == None:
-                return {'wifi': 'Wifi-Connect launch failure.'}, 500
+        if not p.returncode == None:
+            return {'wifi': 'Wifi-Connect launch failure.'}, 500
 
-            return {'wifi': 'success'}, 200
+        return {'wifi': 'success'}, 200
 
     def forget():
-        with resources.globals.app.app_context():
-            #Wait so user gets return code before disconnecting
-            time.sleep(5)
 
-            #Get the name of the current wifi network
-            currentssid = os.popen('iwgetid -r').read().strip()
+        #Wait so user gets return code before disconnecting
+        time.sleep(5)
 
-            if not currentssid:
-                return {'forget': 'No connection found to delete.'}, 409
+        #Get the name of the current wifi network
+        currentssid = os.popen('iwgetid -r').read().strip()
 
-            #Get a list of all connections
-            connections = NetworkManager.Settings.ListConnections()
+        if not currentssid:
+            return {'forget': 'No connection found to delete.'}, 409
 
-            for connection in connections:
-                if connection.GetSettings()["connection"]["type"] == "802-11-wireless":
-                    if connection.GetSettings()["802-11-wireless"]["ssid"] == currentssid:
-                        print("Api-v1 - Wififorget: Deleting connection "
-                            + connection.GetSettings()["connection"]["id"]
-                        )
+        #Get a list of all connections
+        connections = NetworkManager.Settings.ListConnections()
 
-                        #Delete the identified connection and change status code to 200 (success)
-                        connection.Delete()
-                        status = 0
-
-            #Check that a connection was deleted
-            if not status:
-                return {'forget': 'Failed to delete connection.'}, 500
-
-            #Wait before trying to launch wifi-connect
-            time.sleep(5)
-            
-            startwifi = wifi().launch()
-
-            if startwifi != 200:
-                return {'forget': 'Failed to start wifi-connect.'}, 500
-
-            return {'wifi': 'success'}, 200
-
-    def forgetall():
-        with resources.globals.app.app_context():
-            #Wait so user gets return code before disconnecting
-            time.sleep(5)
-
-            #Check and store the current connection state
-            _, connectionstate = checkconnection()
-
-            #Get a list of all connections
-            connections = NetworkManager.Settings.ListConnections()
-
-            for connection in connections:
-                if connection.GetSettings()["connection"]["type"] == "802-11-wireless":
-                    print("Api-v1 - Wififorgetall: Deleting connection "
+        for connection in connections:
+            if connection.GetSettings()["connection"]["type"] == "802-11-wireless":
+                if connection.GetSettings()["802-11-wireless"]["ssid"] == currentssid:
+                    print("Api-v1 - Wififorget: Deleting connection "
                         + connection.GetSettings()["connection"]["id"]
                     )
 
@@ -171,21 +135,56 @@ class wifi:
                     connection.Delete()
                     status = 0
 
-            #If connection status when starting was 'connected' and a network has been deleted
-            if connectionstate == 200 and status == 0:
+        #Check that a connection was deleted
+        if not status:
+            return {'forget': 'Failed to delete connection.'}, 500
 
-                #Wait before trying to launch wifi-connect
-                time.sleep(5)
-                
-                startwifi = wifi().launch()
+        #Wait before trying to launch wifi-connect
+        time.sleep(5)
+        
+        startwifi = wifi().launch()
 
-                #If wifi-connect didn't launch, change status code to 500 (internal server error)
-                if startwifi != 200:
-                    return {'forget': 'Failed to start wifi-connect.'}, 500
+        if startwifi != 200:
+            return {'forget': 'Failed to start wifi-connect.'}, 500
 
-            #Or if connection status when starting was 'connected' and a network has not been deleted
-            elif connectionstate == 200 and status != 200:
-                #Set error code to 500, failed to delete the attached network
-                return {'forget': 'Failed to delete the attached network.'}, 500
+        return {'wifi': 'success'}, 200
 
-            return {'wifi': 'success'}, 200
+    def forgetall():
+
+        #Wait so user gets return code before disconnecting
+        time.sleep(5)
+
+        #Check and store the current connection state
+        _, connectionstate = checkconnection()
+
+        #Get a list of all connections
+        connections = NetworkManager.Settings.ListConnections()
+
+        for connection in connections:
+            if connection.GetSettings()["connection"]["type"] == "802-11-wireless":
+                print("Api-v1 - Wififorgetall: Deleting connection "
+                    + connection.GetSettings()["connection"]["id"]
+                )
+
+                #Delete the identified connection and change status code to 200 (success)
+                connection.Delete()
+                status = 0
+
+        #If connection status when starting was 'connected' and a network has been deleted
+        if connectionstate == 200 and status == 0:
+
+            #Wait before trying to launch wifi-connect
+            time.sleep(5)
+            
+            startwifi = wifi().launch()
+
+            #If wifi-connect didn't launch, change status code to 500 (internal server error)
+            if startwifi != 200:
+                return {'forget': 'Failed to start wifi-connect.'}, 500
+
+        #Or if connection status when starting was 'connected' and a network has not been deleted
+        elif connectionstate == 200 and status != 200:
+            #Set error code to 500, failed to delete the attached network
+            return {'forget': 'Failed to delete the attached network.'}, 500
+
+        return {'wifi': 'success'}, 200

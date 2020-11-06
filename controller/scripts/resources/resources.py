@@ -17,6 +17,7 @@ class device(Resource):
 
 class healthcheck(Resource):
     def get(self):
+        
         return {'status':'ok'}, 200
 
 class hostconfig(Resource):

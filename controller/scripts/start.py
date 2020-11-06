@@ -1,8 +1,13 @@
-from flask_restful import Resource
+from flask import Flask
+from flask_restful import Resource, Api
 from resources.resources import connectionstatus, device, healthcheck, hostconfig, journallogs, update, uuid, wififorget, wififorgetall
 from resources.processes import curl, wifi
 import resources.globals
 import os, time, logging
+
+app = Flask(__name__)
+
+api = Api(app)
 
 #Disable Werkzeug logging to avoid flooding with access logs
 log = logging.getLogger('werkzeug')
@@ -40,14 +45,14 @@ else:
 
 #Configure API access points
 if __name__ == '__main__':
-    resources.globals.api.add_resource(connectionstatus, '/v1/connectionstatus')
-    resources.globals.api.add_resource(device, '/v1/device')
-    resources.globals.api.add_resource(healthcheck, '/')
-    resources.globals.api.add_resource(hostconfig, '/v1/hostconfig/<hostname>') 
-    resources.globals.api.add_resource(journallogs, '/v1/journallogs')
-    resources.globals.api.add_resource(update, '/v1/update')
-    resources.globals.api.add_resource(uuid, '/v1/uuid')
-    resources.globals.api.add_resource(wififorget, '/v1/wififorget')
-    resources.globals.api.add_resource(wififorgetall, '/v1/wififorgetall')
+    api.add_resource(connectionstatus, '/v1/connectionstatus')
+    api.add_resource(device, '/v1/device')
+    api.add_resource(healthcheck, '/')
+    api.add_resource(hostconfig, '/v1/hostconfig/<hostname>') 
+    api.add_resource(journallogs, '/v1/journallogs')
+    api.add_resource(update, '/v1/update')
+    api.add_resource(uuid, '/v1/uuid')
+    api.add_resource(wififorget, '/v1/wififorget')
+    api.add_resource(wififorgetall, '/v1/wififorgetall')
 
-    resources.globals.app.run(port=9090,host='0.0.0.0')
+    app.run(port=9090,host='0.0.0.0')
