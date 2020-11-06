@@ -2,7 +2,7 @@ from flask_restful import Resource
 from resources.resources import connectionstatus, device, healthcheck, hostconfig, journallogs, update, uuid, wififorget, wififorgetall
 from resources.processes import curl, wifi
 import resources.globals
-import os, time, logging, sys
+import os, time, logging
 
 #Disable Werkzeug logging to avoid flooding with access logs
 log = logging.getLogger('werkzeug')

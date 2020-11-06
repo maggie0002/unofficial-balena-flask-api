@@ -1,5 +1,4 @@
-from flask import abort
-from flask_restful import Resource
+from flask_restful import Resource, abort
 from resources.processes import checkconnection, curl, wifi
 import resources.globals
 import os, threading

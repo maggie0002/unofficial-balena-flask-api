@@ -22,9 +22,10 @@ def curl(**cmd):
 
     #Check Balena Supervisor is ready
     retry = 1
-    if not cmd["timeout"] in locals():
+
+    if not hasattr(cmd, 'timeout'):
         cmd["timeout"] = 3
-    if not cmd["supretries"] in locals():
+    if not hasattr(cmd, 'supretries'):
         cmd["supretries"] = 4
 
     while True:
@@ -86,11 +87,15 @@ class wifi:
             except:
                 currenthostname = resources.config.deafultssid
 
-            if not currenthostname in locals():
+            try:
+                currenthostname
+            except NameError:
                 currenthostname = resources.config.deafultssid
 
-            if not resources.config.defaulthostname in locals():
-                resources.config.defaulthostname = 'Welcome'
+            try:
+                resources.config.defaulthostname
+            except NameError:
+                resources.config.defaulthostname = 'welcome'
 
             if currenthostname == resources.config.defaulthostname:
                 cmd = f'/app/common/wifi-connect/wifi-connect -s {resources.config.deafultssid} -o 8080 --ui-directory /app/common/wifi-connect/custom-ui'.split()
