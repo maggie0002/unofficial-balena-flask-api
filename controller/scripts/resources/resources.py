@@ -6,9 +6,9 @@ import os, threading
 class connectionstatus(Resource):
     def get(self):
 
-        response, statuscode = checkconnection()
+        response, status_code = checkconnection()
 
-        return response, statuscode
+        return response, status_code
 
 class device(Resource):
     def get(self):
