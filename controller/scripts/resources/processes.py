@@ -16,7 +16,7 @@ def checkconnection():
             return {'connectionstatus': 'not connected'}, 206
         else:
             #Device is not connected to a wifi network, but the wifi-connect interface isn’t up.
-            return {'connectionstatus': 'wifi-connect failure'}, 500
+            return {'connectionstatus': 'Device is not connected to a wifi network, but the wifi-connect interface isn’t up'}, 500
 
 def curl(**cmd):
 
