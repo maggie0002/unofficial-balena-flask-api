@@ -39,10 +39,10 @@ if connected:
     update().get()
     print("Api-v1 - API Started - Device connected to local wifi")
 else:
-    _, startwifi = wifi().launch()
+    wifimessage, wifistatuscode = wifi().launch()
 
-    if startwifi != 200:
-        print('Api-v1 - Wifi launch error reported. No action taken.')
+    if wifistatuscode != 200:
+        print('Api-v1 - start.py unable to start wifi - ' + wifimessage + str(wifistatuscode))
 
     print("Api-v1 - API Started - Controller launched")
 

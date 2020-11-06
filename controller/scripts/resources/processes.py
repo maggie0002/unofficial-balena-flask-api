@@ -140,12 +140,12 @@ class wifi:
 
         #Wait before trying to launch wifi-connect
         time.sleep(5)
-        
-        _, startwifi = wifi().launch()
 
-        if startwifi != 200:
-            print({'wififorget': 'Failed to start wifi-connect.', 'status': 500}, 500)
-            return {'wififorget': 'Failed to start wifi-connect.', 'status': 500}, 500
+        wifimessage, wifistatuscode = wifi().launch()
+
+        if wifistatuscode != 200:
+            print('Api-v1 - wififorget - ' + wifimessage + str(wifistatuscode))
+            return {'wififorget': 'Failed to start wifi-connect', 'status': wifistatuscode}, wifistatuscode
 
         print({'wififorget': 'success', 'status': 200}, 200)
         return {'wififorget': 'success', 'status': 200}, 200
@@ -176,13 +176,13 @@ class wifi:
 
             #Wait before trying to launch wifi-connect
             time.sleep(5)
-            
-            _, startwifi = wifi().launch()
+
+            wifimessage, wifistatuscode = wifi().launch()
 
             #If wifi-connect didn't launch, change status code to 500 (internal server error)
-            if startwifi != 200:
-                print({'wififorgetall': 'Failed to start wifi-connect.', 'status': 500}, 500)
-                return {'wififorgetall': 'Failed to start wifi-connect.', 'status': 500}, 500
+            if wifistatuscode != 200:
+                print('Api-v1 - wififorgetall - ' + wifimessage + str(wifistatuscode))
+                return {'wififorgetall': 'Failed to start wifi-connect', 'status': wifistatuscode}, wifistatuscode
 
         #Or if connection status when starting was 'connected' and a network has not been deleted
         elif connectionstate == 200 and status != 200:
