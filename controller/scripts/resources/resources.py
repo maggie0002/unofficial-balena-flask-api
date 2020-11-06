@@ -76,4 +76,4 @@ class wififorgetall(Resource):
         wififorgetall = threading.Thread(target=wifi.forgetall, name='wififorgetall')
         wififorgetall.start()
 
-        return {'wififorget': 'Reset request sent.', 'status': 202}, 202
+        return {'wififorgetall': 'Reset request sent.', 'status': 202}, 202
