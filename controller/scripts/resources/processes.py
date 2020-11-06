@@ -6,16 +6,13 @@ def checkconnection():
     run = os.popen('iwgetid -r').read().strip()
 
     if run:
-        #Device is connected to wifi
         return {'connectionstatus': 'connected'}, 200
     else:
         pingwifi = os.system('ping -c 1 -w 1 -I wlan0 192.168.42.1 >/dev/null 2>&1')
 
         if pingwifi == 0:
-            #Device is not connected to wifi
             return {'connectionstatus': 'not connected'}, 206
         else:
-            #Device is not connected to a wifi network, but the wifi-connect interface isn’t up.
             return {'connectionstatus': 'Device is not connected to a wifi network, but the wifi-connect interface isn’t up'}, 500
 
 def curl(**cmd):
@@ -72,7 +69,7 @@ def curl(**cmd):
 
 class wifi:
     def launch(self):
-    
+        #Check if wifi-connect is already up
         try:
             pingwifi = os.system('ping -c 1 -w 1 -I wlan0 192.168.42.1 >/dev/null 2>&1')
         except:
@@ -81,21 +78,25 @@ class wifi:
         if pingwifi == 0:
             return {'wifi': 'Wifi-Connect already running'}, 500
 
+        #Check default hostname variables is not empty, and set if it is
+        try:
+            resources.config.defaulthostname
+        except NameError:
+            resources.config.defaulthostname = 'defaulthostname'
+
+        #Get the current hostname of the container, and set a default on failure
         try:
             currenthostname = os.popen('hostname').read().strip()
         except:
             currenthostname = resources.config.deafultssid
 
+        #Check the current hostname variable is not empty, and set if it is
         try:
             currenthostname
         except NameError:
             currenthostname = resources.config.deafultssid
 
-        try:
-            resources.config.defaulthostname
-        except NameError:
-            resources.config.defaulthostname = 'welcome'
-
+        #Decide whether to use default SSID or match hostname
         if currenthostname == resources.config.defaulthostname:
             cmd = f'/app/common/wifi-connect/wifi-connect -s {resources.config.deafultssid} -o 8080 --ui-directory /app/common/wifi-connect/custom-ui'.split()
         else:

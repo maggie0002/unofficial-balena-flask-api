@@ -7,7 +7,7 @@ class connectionstatus(Resource):
     def get(self):
 
         response, statuscode = checkconnection()
-        
+
         return response, statuscode
 
 class device(Resource):
