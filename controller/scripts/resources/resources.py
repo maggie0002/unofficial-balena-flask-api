@@ -21,7 +21,10 @@ class healthcheck(Resource):
 
 class hostconfig(Resource):
     def get(self, hostname):
-        if hostname == None:
+
+        try:
+            hostname
+        except NameError:
             abort(404, 'No hostname entered') 
 
         response = curl(method = "patch", path = "/v1/device/host-config?apikey=", string = '{"network": {"hostname": "%s"}}'%(hostname))
