@@ -67,20 +67,34 @@ def curl(*args):
 class wifi:
     def launch(self):
         with resources.globals.app.app_context():
-            pingwifi = os.system('ping -c 1 -w 1 -I wlan0 192.168.42.1 >/dev/null 2>&1')
+            
+            try:
+                pingwifi = os.system('ping -c 1 -w 1 -I wlan0 192.168.42.1 >/dev/null 2>&1')
+            except:
+                pingwifi = 1
 
             if pingwifi == 0:
                return {'wifi': 'Wifi-Connect already running'}, 500
 
-            currenthostname = curl('get', '/v1/device/host-config?apikey=', 5)
+            try:
+                currenthostname = os.popen('hostname').read().strip()
+            except:
+                currenthostname = resources.config.deafultssid
 
-            if not currenthostname.json()["network"]["hostname"]:
-                return {'wifi': 'Hostname string is empty.'}, 500
+            try:
+                currenthostname
+            except NameError:
+                currenthostname = resources.config.deafultssid
 
-            if currenthostname.json()["network"]["hostname"] == resources.config.defaulthostname:
+            try:
+                resources.config.defaulthostname
+            except NameError:
+                resources.config.defaulthostname = 'block'
+
+            if currenthostname == resources.config.defaulthostname:
                 cmd = f'/app/common/wifi-connect/wifi-connect -s {resources.config.deafultssid} -o 8080 --ui-directory /app/common/wifi-connect/custom-ui'.split()
             else:
-                cmd = f'/app/common/wifi-connect/wifi-connect -s {currenthostname.json()["network"]["hostname"]} -o 8080 --ui-directory /app/common/wifi-connect/custom-ui'.split()
+                cmd = f'/app/common/wifi-connect/wifi-connect -s {currenthostname} -o 8080 --ui-directory /app/common/wifi-connect/custom-ui'.split()
 
             p = subprocess.Popen(cmd, stdout = subprocess.PIPE,
                                     stderr=subprocess.PIPE,

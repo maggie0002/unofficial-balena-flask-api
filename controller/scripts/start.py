@@ -13,19 +13,20 @@ print("Api-v1 - Starting API...")
 #Wait for any saved connections to reconnect
 time.sleep(20)
 
-#Fetch container hostname and device hostname
-containerhostname = os.popen('hostname').read().strip()
-devicehostname = curl('get', '/v1/device/host-config?apikey=', 5)
+try:
+    #Fetch container hostname and device hostname
+    containerhostname = os.popen('hostname').read().strip()
+    devicehostname = curl('get', '/v1/device/host-config?apikey=', 5)
 
-if devicehostname.status_code != 200:
-    sys.exit('Failed to retrieve device hostname. Restarting container.')
+    #Check container and device hostname match
+    if containerhostname != devicehostname.json()["network"]["hostname"]:
+        print("Container hostname and device hostname do not match. Likely a hostname" + \
+        "change has been performed. Balena Supervisor should detect this and rebuild " + \
+        "the container shortly. Waiting 90 seconds before continuing anyway.")
+        time.sleep(90)
 
-#Check container and device hostname match
-if containerhostname != devicehostname.json()["network"]["hostname"]:
-    print("Container hostname and device hostname do not match. Likely a hostname" + \
-    "change has been performed. Balena Supervisor should detect this and rebuild " + \
-    "the container shortly. Waiting 90 seconds before continuing anyway.")
-    time.sleep(90)
+except:
+    print("Api-v1 - Failed to compare hostnames, starting anyway...")
 
 #If connected to a wifi network then update device, otherwise launch wifi-connect
 connected = os.popen('iwgetid -r').read().strip()
@@ -33,10 +34,7 @@ if connected:
     update().get()
     print("Api-v1 - API Started - Device connected to local wifi")
 else:
-    _, startwifi = wifi().launch()
-
-    if startwifi != 200:
-        sys.exit('Wifi-Connect failed to start. Restarting container.')
+    wifi().launch()
 
     print("Api-v1 - API Started - Controller launched")
 
