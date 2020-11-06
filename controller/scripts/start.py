@@ -2,7 +2,7 @@ from flask_restful import Resource
 from resources.resources import connectionstatus, device, healthcheck, hostconfig, journallogs, update, uuid, wififorget, wififorgetall
 from resources.processes import curl, wifi
 import resources.globals
-import os, time, logging
+import os, time, logging, sys
 
 #Disable Werkzeug logging to avoid flooding with access logs
 log = logging.getLogger('werkzeug')
@@ -15,7 +15,10 @@ time.sleep(20)
 
 #Fetch container hostname and device hostname
 containerhostname = os.popen('hostname').read().strip()
-devicehostname = curl('get', '/v1/device/host-config?apikey=')
+devicehostname = curl('get', '/v1/device/host-config?apikey=', 5)
+
+if devicehostname.status_code != 200:
+    sys.exit('Failed to retrieve device hostname. Restarting container.')
 
 #Check container and device hostname match
 if containerhostname != devicehostname.json()["network"]["hostname"]:
@@ -27,10 +30,14 @@ if containerhostname != devicehostname.json()["network"]["hostname"]:
 #If connected to a wifi network then update device, otherwise launch wifi-connect
 connected = os.popen('iwgetid -r').read().strip()
 if connected:
-    start = update().get()
+    update().get()
     print("Api-v1 - API Started - Device connected to local wifi")
 else:
-    start = wifi().launch()
+    _, startwifi = wifi().launch()
+
+    if startwifi != 200:
+        sys.exit('Wifi-Connect failed to start. Restarting container.')
+
     print("Api-v1 - API Started - Controller launched")
 
 #Configure API access points

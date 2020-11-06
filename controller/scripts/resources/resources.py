@@ -1,115 +1,73 @@
-from flask import make_response, jsonify
+from flask import abort
 from flask_restful import Resource
-from resources.processes import curl, wifi
-from resources.exitcodes import exitgen
+from resources.processes import checkconnection, curl, wifi
 import resources.globals
 import os, threading
 
 class connectionstatus(Resource):
     def get(self):
 
-        run = os.popen('iwgetid -r').read().strip()
-
-        if run:
-            #Device is connected to wifi
-            status = 200
-        else:
-            pingwifi = os.system('ping -c 1 -w 1 -I wlan0 192.168.42.1 >/dev/null 2>&1')
-
-            if pingwifi == 0:
-                #Device is not connected to wifi
-                status = 206
-            else:
-                #Device is not connected to a wifi network, but the wifi-connect interface isn’t up.
-                status = 500
-
-        exitstatus = exitgen(self.__class__.__name__, int(status))
-        print("Api-v1 - Connectionstatus: " + str(exitstatus.json))
-        return exitstatus
+        return checkconnection()
 
 class device(Resource):
     def get(self):
 
-        response = curl('get', '/v1/device?apikey=')
+        response = curl('get', '/v1/device?apikey=', 5)
 
-        print("Api-v1 - Device: Device data returned.")
-
-        return response.json()
+        return response.json(), response.statuscode
 
 class healthcheck(Resource):
     def get(self):
-        return "ok"
+        return {'status':'ok'}, 200
 
 class hostconfig(Resource):
     def get(self, hostname):
-        if hostname != None:
-            response = curl('patch', '/v1/device/host-config?apikey=', '{"network": {"hostname": "%s"}}'%(hostname))
-                
-            exitstatus = exitgen(self.__class__.__name__, int(response.status_code), hostname)
-            print("Api-v1 - Hostconfig: " + str(exitstatus.json))
-        else:
-            exitstatus = exitgen(self.__class__.__name__, 500, hostname)
-            print("Api-v1 - Hostconfig: " + str(exitstatus.json))
-            
-        return exitstatus
+        if hostname == None:
+            abort(404, 'No hostname entered') 
+
+        response = curl('patch', '/v1/device/host-config?apikey=', '{"network": {"hostname": "%s"}}'%(hostname), 5)
+
+        return response.json(), response.statuscode
 
 class journallogs(Resource):
     def get(self):
 
-        response = curl('post', '/v2/journal-logs?apikey=', '("follow", "false", "all", "true", "format", "short")')
-
-        print("Api-v1 - Journald-logs: Available logs returned.")
+        response = curl('post', '/v2/journal-logs?apikey=', '("follow", "false", "all", "true", "format", "short")', 10)
 
         return response.text
 
 class update(Resource):
     def get(self):
 
-        response = curl('post', '/v1/update?apikey=', '("force", "true")')
+        response = curl('post', '/v1/update?apikey=', '("force", "true")', 5)
 
-        exitstatus = make_response(response.text, response.status_code)
-
-        print("Api-v1 - Update: " + exitstatus.data.decode("utf-8"), exitstatus.status_code)
-
-        return exitstatus
+        return {'update': response.text}, response.status_code
 
 class uuid(Resource):
     def get(self):
         uuid = os.popen('printenv BALENA_DEVICE_UUID').read().strip()
 
-        response = make_response(jsonify(
-                    {"UUID": uuid}), 200)
-        print("Api-v1 - UUID: Device UUID returned.")
-        return response
+        return {'uuid': uuid}
 
 class wififorget(Resource):
     def get(self):
 
         #Check and store the current connection state
-        checkconnection = connectionstatus().get()
+        _, connectionstate = checkconnection()
 
         #If the device is connected to a wifi network
-        if checkconnection.status_code == 200:
+        if connectionstate != 200:
+            abort(409, 'The device is not connected. No action taken.') 
 
-            wififorget = threading.Thread(target=wifi.forget, name='wififorget')
-            wififorget.start()
-            status = 202
+        wififorget = threading.Thread(target=wifi.forget, name='wififorget')
+        wififorget.start()
 
-        else:
-            
-            status = 409
-        
-        exitstatus = exitgen(self.__class__.__name__, status)
-        print("Api-v1 - Wififorget: Accepted")
-        return exitstatus
+        return {'wififorget': 'Reset request sent.'}, 202  
 
 class wififorgetall(Resource):
     def get(self):
 
         wififorgetall = threading.Thread(target=wifi.forgetall, name='wififorgetall')
         wififorgetall.start()
-        status = 202
-        
-        exitstatus = exitgen(self.__class__.__name__, status)
-        print("Api-v1 - Wififorget: Accepted")
-        return exitstatus
+
+        return {'wififorget': 'Reset request sent.'}, 202
