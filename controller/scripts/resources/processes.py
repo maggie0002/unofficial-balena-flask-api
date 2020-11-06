@@ -6,14 +6,14 @@ def checkconnection():
     run = os.popen('iwgetid -r').read().strip()
 
     if run:
-        return {'connectionstatus': 'connected'}, 200
+        return {'connectionstatus': 'connected', 'status': 200}, 200
     else:
         pingwifi = os.system('ping -c 1 -w 1 -I wlan0 192.168.42.1 >/dev/null 2>&1')
 
         if pingwifi == 0:
-            return {'connectionstatus': 'not connected'}, 206
+            return {'connectionstatus': 'not connected', 'status': 206}, 206
         else:
-            return {'connectionstatus': 'Device is not connected to a wifi network, but the wifi-connect interface isn’t up'}, 500
+            return {'connectionstatus': 'Device is not connected to a wifi network, but the wifi-connect interface isn’t up', 'status': 500}, 500
 
 def curl(**cmd):
 
@@ -76,7 +76,7 @@ class wifi:
             pingwifi = 1
 
         if pingwifi == 0:
-            return {'wifi': 'Wifi-Connect already running'}, 500
+            return {'wifi': 'Wifi-Connect already running', 'status': 500}, 500
 
         #Check default hostname variables is not empty, and set if it is
         try:
@@ -107,9 +107,9 @@ class wifi:
                                 stdin=subprocess.PIPE)
 
         if not p.returncode == None:
-            return {'wifi': 'Wifi-Connect launch failure.'}, 500
+            return {'wifi': 'Wifi-Connect launch failure.', 'status': 500}, 500
 
-        return {'wifi': 'success'}, 200
+        return {'wifi': 'success', 'status': 200}, 200
 
     def forget():
 
@@ -118,9 +118,6 @@ class wifi:
 
         #Get the name of the current wifi network
         currentssid = os.popen('iwgetid -r').read().strip()
-
-        if not currentssid:
-            return {'forget': 'No connection found to delete.'}, 409
 
         #Get a list of all connections
         connections = NetworkManager.Settings.ListConnections()
@@ -138,17 +135,17 @@ class wifi:
 
         #Check that a connection was deleted
         if not status:
-            return {'forget': 'Failed to delete connection.'}, 500
+            return {'forget': 'Failed to delete connection.', 'status': 500}, 500
 
         #Wait before trying to launch wifi-connect
         time.sleep(5)
         
-        startwifi = wifi().launch()
+        _, startwifi = wifi().launch()
 
         if startwifi != 200:
-            return {'forget': 'Failed to start wifi-connect.'}, 500
+            return {'forget': 'Failed to start wifi-connect.', 'status': 500}, 500
 
-        return {'wifi': 'success'}, 200
+        return {'wifi': 'success', 'status': 200}, 200
 
     def forgetall():
 
@@ -177,15 +174,15 @@ class wifi:
             #Wait before trying to launch wifi-connect
             time.sleep(5)
             
-            startwifi = wifi().launch()
+            _, startwifi = wifi().launch()
 
             #If wifi-connect didn't launch, change status code to 500 (internal server error)
             if startwifi != 200:
-                return {'forget': 'Failed to start wifi-connect.'}, 500
+                return {'forget': 'Failed to start wifi-connect.', 'status': 500}, 500
 
         #Or if connection status when starting was 'connected' and a network has not been deleted
         elif connectionstate == 200 and status != 200:
             #Set error code to 500, failed to delete the attached network
-            return {'forget': 'Failed to delete the attached network.'}, 500
+            return {'forget': 'Failed to delete the attached network.', 'status': 500}, 500
 
-        return {'wifi': 'success'}, 200
+        return {'wifi': 'success', 'status': 200}, 200

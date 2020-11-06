@@ -15,12 +15,12 @@ class device(Resource):
 
         response = curl(method = "get", path = "/v1/device?apikey=")
 
-        return response.json(), response.statuscode
+        return {'device': response.text, 'status': response.status_code}, response.status_code
 
 class healthcheck(Resource):
     def get(self):
 
-        return {'status':'ok'}, 200
+        return {'healthcheck': 'ok', 'status': 200}, 200
 
 class hostconfig(Resource):
     def get(self, hostname):
@@ -28,11 +28,11 @@ class hostconfig(Resource):
         try:
             hostname
         except NameError:
-            abort(404, 'No hostname entered') 
+            abort(404, hostconfig='No hostname entered.', status=404)
 
         response = curl(method = "patch", path = "/v1/device/host-config?apikey=", string = '{"network": {"hostname": "%s"}}'%(hostname))
 
-        return response.json(), response.statuscode
+        return {'hostconfig': response.text, 'status': response.status_code}, response.status_code
 
 class journallogs(Resource):
     def get(self):
@@ -46,7 +46,7 @@ class update(Resource):
 
         response = curl(method ="post", path = "/v1/update?apikey=", string = '("force", "true")')
 
-        return {'update': response.text}, response.status_code
+        return {'update': response.text, 'status': response.status_code}, response.status_code
 
 class uuid(Resource):
     def get(self):
@@ -63,12 +63,12 @@ class wififorget(Resource):
 
         #If the device is connected to a wifi network
         if connectionstate != 200:
-            abort(409, 'The device is not connected. No action taken.') 
+            abort(409, wififorget='The device is not connected. No action taken.', status=409) 
 
         wififorget = threading.Thread(target=wifi.forget, name='wififorget')
         wififorget.start()
 
-        return {'wififorget': 'Reset request sent.'}, 202  
+        return {'wififorget': 'Reset request sent.', 'status': 202}, 202  
 
 class wififorgetall(Resource):
     def get(self):
@@ -76,4 +76,4 @@ class wififorgetall(Resource):
         wififorgetall = threading.Thread(target=wifi.forgetall, name='wififorgetall')
         wififorgetall.start()
 
-        return {'wififorget': 'Reset request sent.'}, 202
+        return {'wififorget': 'Reset request sent.', 'status': 202}, 202
