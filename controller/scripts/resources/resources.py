@@ -6,7 +6,9 @@ import os, threading
 class connectionstatus(Resource):
     def get(self):
 
-        return checkconnection()
+        response, statuscode = checkconnection()
+        
+        return response, statuscode
 
 class device(Resource):
     def get(self):
@@ -17,7 +19,7 @@ class device(Resource):
 
 class healthcheck(Resource):
     def get(self):
-        
+
         return {'status':'ok'}, 200
 
 class hostconfig(Resource):
@@ -48,6 +50,7 @@ class update(Resource):
 
 class uuid(Resource):
     def get(self):
+
         uuid = os.popen('printenv BALENA_DEVICE_UUID').read().strip()
 
         return {'uuid': uuid}
