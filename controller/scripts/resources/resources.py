@@ -1,7 +1,7 @@
 from flask_restful import Resource, abort
 from resources.processes import checkconnection, curl, wifi
 import resources.globals
-import os, threading
+import threading
 
 class connectionstatus(Resource):
     def get(self):
@@ -51,9 +51,7 @@ class update(Resource):
 class uuid(Resource):
     def get(self):
 
-        uuid = os.popen('printenv BALENA_DEVICE_UUID').read().strip()
-
-        return {'uuid': uuid}
+        return {'uuid': resources.globals.BALENA_DEVICE_UUID}
 
 class wififorget(Resource):
     def get(self):
