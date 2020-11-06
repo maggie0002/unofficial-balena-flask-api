@@ -18,10 +18,15 @@ def checkconnection():
             #Device is not connected to a wifi network, but the wifi-connect interface isn’t up.
             return {'connectionstatus': 'wifi-connect failure'}, 500
 
-def curl(*args):
+def curl(**cmd):
 
     #Check Balena Supervisor is ready
     retry = 1
+    if not cmd["timeout"] in locals():
+        cmd["timeout"] = 3
+    if not cmd["supretries"] in locals():
+        cmd["supretries"] = 4
+
     while True:
         
         supervisorstatus = requests.get(
@@ -32,7 +37,7 @@ def curl(*args):
         if supervisorstatus == 200:
             break
 
-        if retry == 4:
+        if retry == cmd["supretries"]:
             return supervisorstatus
             
         print("Api-v1 - Waiting for Balena Supervisor to be ready. Retry " + retry)
@@ -40,26 +45,26 @@ def curl(*args):
         retry = retry + 1
 
     #Process curl request 
-    if args[0] == 'post':
+    if cmd["method"] == 'post':
         response = requests.post(
-            f'{resources.globals.BALENA_SUPERVISOR_ADDRESS}{args[1]}{resources.globals.BALENA_SUPERVISOR_API_KEY}',
-            json=[args[2]],
-            headers={"Content-Type": "application/json"}, timeout=args[3]
+            f'{resources.globals.BALENA_SUPERVISOR_ADDRESS}{cmd["path"]}{resources.globals.BALENA_SUPERVISOR_API_KEY}',
+            json=[cmd["string"]],
+            headers={"Content-Type": "application/json"}, timeout=cmd["timeout"]
         )
 
-    elif args[0] == 'patch':
+    elif cmd["method"] == 'patch':
 
         response = requests.patch(
-            f'{resources.globals.BALENA_SUPERVISOR_ADDRESS}{args[1]}{resources.globals.BALENA_SUPERVISOR_API_KEY}',
-            data=args[2],
-            headers={"Content-Type": "application/json"}, timeout=args[3]
+            f'{resources.globals.BALENA_SUPERVISOR_ADDRESS}{cmd["path"]}{resources.globals.BALENA_SUPERVISOR_API_KEY}',
+            data=cmd["string"],
+            headers={"Content-Type": "application/json"}, timeout=cmd["timeout"]
         )
 
-    elif args[0] == 'get':
+    elif cmd["method"] == 'get':
 
         response = requests.get(
-            f'{resources.globals.BALENA_SUPERVISOR_ADDRESS}{args[1]}{resources.globals.BALENA_SUPERVISOR_API_KEY}',
-            headers={"Content-Type": "application/json"}, timeout=args[3]
+            f'{resources.globals.BALENA_SUPERVISOR_ADDRESS}{cmd["path"]}{resources.globals.BALENA_SUPERVISOR_API_KEY}',
+            headers={"Content-Type": "application/json"}, timeout=cmd["timeout"]
         )
 
     return response
@@ -81,15 +86,11 @@ class wifi:
             except:
                 currenthostname = resources.config.deafultssid
 
-            try:
-                currenthostname
-            except NameError:
+            if not currenthostname in locals():
                 currenthostname = resources.config.deafultssid
 
-            try:
-                resources.config.defaulthostname
-            except NameError:
-                resources.config.defaulthostname = 'block'
+            if not resources.config.defaulthostname in locals():
+                resources.config.defaulthostname = 'Welcome'
 
             if currenthostname == resources.config.defaulthostname:
                 cmd = f'/app/common/wifi-connect/wifi-connect -s {resources.config.deafultssid} -o 8080 --ui-directory /app/common/wifi-connect/custom-ui'.split()

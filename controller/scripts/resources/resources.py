@@ -12,7 +12,7 @@ class connectionstatus(Resource):
 class device(Resource):
     def get(self):
 
-        response = curl('get', '/v1/device?apikey=', 5)
+        response = curl(method = "get", path = "/v1/device?apikey=")
 
         return response.json(), response.statuscode
 
@@ -25,21 +25,21 @@ class hostconfig(Resource):
         if hostname == None:
             abort(404, 'No hostname entered') 
 
-        response = curl('patch', '/v1/device/host-config?apikey=', '{"network": {"hostname": "%s"}}'%(hostname), 5)
+        response = curl(method = "patch", path = "/v1/device/host-config?apikey=", string = '{"network": {"hostname": "%s"}}'%(hostname))
 
         return response.json(), response.statuscode
 
 class journallogs(Resource):
     def get(self):
 
-        response = curl('post', '/v2/journal-logs?apikey=', '("follow", "false", "all", "true", "format", "short")', 10)
+        response = curl(method = "post", path  = "/v2/journal-logs?apikey=", string = '("follow", "false", "all", "true", "format", "short")', timeout = 10)
 
         return response.text
 
 class update(Resource):
     def get(self):
 
-        response = curl('post', '/v1/update?apikey=', '("force", "true")', 5)
+        response = curl(method ="post", path = "/v1/update?apikey=", string = '("force", "true")')
 
         return {'update': response.text}, response.status_code
 

@@ -16,7 +16,7 @@ time.sleep(20)
 try:
     #Fetch container hostname and device hostname
     containerhostname = os.popen('hostname').read().strip()
-    devicehostname = curl('get', '/v1/device/host-config?apikey=', 5)
+    devicehostname = curl(method = "get", path = "/v1/device/host-config?apikey=", timeout = 5, supretries = 10)
 
     #Check container and device hostname match
     if containerhostname != devicehostname.json()["network"]["hostname"]:
