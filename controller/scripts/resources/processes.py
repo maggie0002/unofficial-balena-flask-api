@@ -76,7 +76,7 @@ class wifi:
             pingwifi = 1
 
         if pingwifi == 0:
-            return {'wifi': 'Wifi-Connect already running', 'status': 500}, 500
+            return {'wifilaunch': 'Wifi-Connect already running', 'status': 500}, 500
 
         #Check default hostname variables is not empty, and set if it is
         try:
@@ -107,9 +107,9 @@ class wifi:
                                 stdin=subprocess.PIPE)
 
         if not p.returncode == None:
-            return {'wifi': 'Wifi-Connect launch failure.', 'status': 500}, 500
+            return {'wifilaunch': 'Wifi-Connect launch failure.', 'status': 500}, 500
 
-        return {'wifi': 'success', 'status': 200}, 200
+        return {'wifilaunch': 'success', 'status': 200}, 200
 
     def forget():
 
@@ -135,7 +135,8 @@ class wifi:
 
         #Check that a connection was deleted
         if not status:
-            return {'forget': 'Failed to delete connection.', 'status': 500}, 500
+            print({'wififorget': 'Failed to delete connection.', 'status': 500}, 500)
+            return {'wififorget': 'Failed to delete connection.', 'status': 500}, 500
 
         #Wait before trying to launch wifi-connect
         time.sleep(5)
@@ -143,9 +144,11 @@ class wifi:
         _, startwifi = wifi().launch()
 
         if startwifi != 200:
-            return {'forget': 'Failed to start wifi-connect.', 'status': 500}, 500
+            print({'wififorget': 'Failed to start wifi-connect.', 'status': 500}, 500)
+            return {'wififorget': 'Failed to start wifi-connect.', 'status': 500}, 500
 
-        return {'wifi': 'success', 'status': 200}, 200
+        print({'wififorget': 'success', 'status': 200}, 200)
+        return {'wififorget': 'success', 'status': 200}, 200
 
     def forgetall():
 
@@ -178,11 +181,14 @@ class wifi:
 
             #If wifi-connect didn't launch, change status code to 500 (internal server error)
             if startwifi != 200:
-                return {'forget': 'Failed to start wifi-connect.', 'status': 500}, 500
+                print({'wififorgetall': 'Failed to start wifi-connect.', 'status': 500}, 500)
+                return {'wififorgetall': 'Failed to start wifi-connect.', 'status': 500}, 500
 
         #Or if connection status when starting was 'connected' and a network has not been deleted
         elif connectionstate == 200 and status != 200:
             #Set error code to 500, failed to delete the attached network
-            return {'forget': 'Failed to delete the attached network.', 'status': 500}, 500
-
-        return {'wifi': 'success', 'status': 200}, 200
+            print({'wififorgetall': 'Failed to delete the attached network.', 'status': 500}, 500)
+            return {'wififorgetall': 'Failed to delete the attached network.', 'status': 500}, 500
+        
+        print({'wififorgetall': 'success', 'status': 200}, 200)
+        return {'wififorgetall': 'success', 'status': 200}, 200
