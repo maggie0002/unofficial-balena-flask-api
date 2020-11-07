@@ -42,9 +42,9 @@ else:
     wifimessage, wifistatuscode = wifi().launch()
 
     if wifistatuscode != 200:
-        print('Api-v1 - start.py unable to start wifi - ' + wifimessage + str(wifistatuscode))
-
-    print("Api-v1 - API Started - Controller launched")
+        print('Api-v1 - start.py unable to start wifi - ' + str(wifimessage))
+    else:
+        print("Api-v1 - API Started - Controller launched")
 
 #Configure API access points
 if __name__ == '__main__':

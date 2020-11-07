@@ -8,9 +8,10 @@ def checkconnection():
     if run:
         return {'connectionstatus': 'connected', 'status': 200}, 200
     else:
-        pingwifi = os.system('ping -c 1 -w 1 -I wlan0 192.168.42.1 >/dev/null 2>&1')
 
-        if pingwifi == 0:
+        curlwifi = requests.get('http://192.168.42.1:8080', timeout=2)
+
+        if curlwifi.status_code == 200:
             return {'connectionstatus': 'not connected', 'status': 206}, 206
         else:
             return {'connectionstatus': 'Device is not connected to a wifi network, but the wifi-connect interface isn’t up', 'status': 500}, 500
@@ -32,14 +33,14 @@ def curl(**cmd):
             headers={"Content-Type": "application/json"}, timeout=1
         ) 
 
-        if supervisorstatus == 200:
+        if supervisorstatus.status_code == 200:
             break
 
         if retry == cmd["supretries"]:
             return supervisorstatus
             
-        print("Api-v1 - Waiting for Balena Supervisor to be ready. Retry " + retry)
-        time.sleep(1)
+        print("Api-v1 - Waiting for Balena Supervisor to be ready. Retry " + str(retry))
+        time.sleep(4)
         retry = retry + 1
 
     #Process curl request 
@@ -71,11 +72,11 @@ class wifi:
     def launch(self):
         #Check if wifi-connect is already up
         try:
-            pingwifi = os.system('ping -c 1 -w 1 -I wlan0 192.168.42.1 >/dev/null 2>&1')
+            curlwifi = requests.get('http://192.168.42.1:8080', timeout=2)
         except:
-            pingwifi = 1
+            curlwifi.status_code = 1
 
-        if pingwifi == 0:
+        if curlwifi.status_code == 200:
             return {'wifilaunch': 'Wifi-Connect already running', 'status': 500}, 500
 
         #Check default hostname variables is not empty, and set if it is
@@ -144,7 +145,7 @@ class wifi:
         wifimessage, wifistatuscode = wifi().launch()
 
         if wifistatuscode != 200:
-            print('Api-v1 - wififorget - ' + wifimessage + str(wifistatuscode))
+            print('Api-v1 - wififorget - ' + str(wifimessage) + str(wifistatuscode))
             return {'wififorget': 'Failed to start wifi-connect', 'status': wifistatuscode}, wifistatuscode
 
         print({'wififorget': 'success', 'status': 200}, 200)
@@ -181,7 +182,7 @@ class wifi:
 
             #If wifi-connect didn't launch, change status code to 500 (internal server error)
             if wifistatuscode != 200:
-                print('Api-v1 - wififorgetall - ' + wifimessage + str(wifistatuscode))
+                print('Api-v1 - wififorgetall - ' + str(wifimessage) + str(wifistatuscode))
                 return {'wififorgetall': 'Failed to start wifi-connect', 'status': wifistatuscode}, wifistatuscode
 
         #Or if connection status when starting was 'connected' and a network has not been deleted
