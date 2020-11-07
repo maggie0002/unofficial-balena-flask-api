@@ -8,13 +8,13 @@ def checkconnection():
     if run:
         return {'connectionstatus': 'connected', 'status': 200}, 200
     else:
+        
+        curlwifi = wifi().wificonnect()
 
-        curlwifi = requests.get('http://192.168.42.1:8080', timeout=2)
-
-        if curlwifi.status_code == 200:
+        if curlwifi == 200:
             return {'connectionstatus': 'not connected', 'status': 206}, 206
         else:
-            return {'connectionstatus': 'Device is not connected to a wifi network, but the wifi-connect interface isn’t up', 'status': 500}, 500
+            return {'connectionstatus': 'Device is not connected to a wifi network, but the wifi-connect interface isn’t up', 'status': 409}, 409
 
 def curl(**cmd):
 
@@ -27,56 +27,74 @@ def curl(**cmd):
         cmd["supretries"] = 4
 
     while True:
+        try:
+            supervisorstatus = requests.get(
+                f'{resources.globals.BALENA_SUPERVISOR_ADDRESS}/ping',
+                headers={"Content-Type": "application/json"}, timeout=1
+            ) 
+
+            if supervisorstatus.status_code == 200:
+                break
+            else:
+                class supervisorerror:
+                    text = "Supervisor returned error code"
+                    status_code = 500
+                return supervisorerror
+
+        except requests.exceptions.Timeout:
+            print("Api-v1 - Waiting for Balena Supervisor to be ready. Retry " + str(retry))
         
-        supervisorstatus = requests.get(
-            f'{resources.globals.BALENA_SUPERVISOR_ADDRESS}/ping',
-            headers={"Content-Type": "application/json"}, timeout=1
-        ) 
+            if retry == cmd["supretries"]:
 
-        if supervisorstatus.status_code == 200:
-            break
-
-        if retry == cmd["supretries"]:
-            return supervisorstatus
+                class supervisortimeout:
+                    text = "Supervisor Timeout"
+                    status_code = 408
+                return supervisortimeout
             
-        print("Api-v1 - Waiting for Balena Supervisor to be ready. Retry " + str(retry))
-        time.sleep(4)
-        retry = retry + 1
+            time.sleep(4)
+            retry = retry + 1
 
     #Process curl request 
-    if cmd["method"] == 'post':
-        response = requests.post(
-            f'{resources.globals.BALENA_SUPERVISOR_ADDRESS}{cmd["path"]}{resources.globals.BALENA_SUPERVISOR_API_KEY}',
-            json=[cmd["string"]],
-            headers={"Content-Type": "application/json"}, timeout=cmd["timeout"]
-        )
+    try: 
+        if cmd["method"] == 'post':
+            response = requests.post(
+                f'{resources.globals.BALENA_SUPERVISOR_ADDRESS}{cmd["path"]}{resources.globals.BALENA_SUPERVISOR_API_KEY}',
+                json=[cmd["string"]],
+                headers={"Content-Type": "application/json"}, timeout=cmd["timeout"]
+            )
 
-    elif cmd["method"] == 'patch':
+        elif cmd["method"] == 'patch':
 
-        response = requests.patch(
-            f'{resources.globals.BALENA_SUPERVISOR_ADDRESS}{cmd["path"]}{resources.globals.BALENA_SUPERVISOR_API_KEY}',
-            data=cmd["string"],
-            headers={"Content-Type": "application/json"}, timeout=cmd["timeout"]
-        )
+            response = requests.patch(
+                f'{resources.globals.BALENA_SUPERVISOR_ADDRESS}{cmd["path"]}{resources.globals.BALENA_SUPERVISOR_API_KEY}',
+                data=cmd["string"],
+                headers={"Content-Type": "application/json"}, timeout=cmd["timeout"]
+            )
 
-    elif cmd["method"] == 'get':
+        elif cmd["method"] == 'get':
 
-        response = requests.get(
-            f'{resources.globals.BALENA_SUPERVISOR_ADDRESS}{cmd["path"]}{resources.globals.BALENA_SUPERVISOR_API_KEY}',
-            headers={"Content-Type": "application/json"}, timeout=cmd["timeout"]
-        )
+            response = requests.get(
+                f'{resources.globals.BALENA_SUPERVISOR_ADDRESS}{cmd["path"]}{resources.globals.BALENA_SUPERVISOR_API_KEY}',
+                headers={"Content-Type": "application/json"}, timeout=cmd["timeout"]
+            )
+    except requests.exceptions.Timeout:
+        class curlstatus:
+            text = "Supervisor Timeout"
+            status_code = 408
+        return curlstatus
 
     return response
 
 class wifi:
     def launch(self):
+        
         #Check if wifi-connect is already up
         try:
-            curlwifi = requests.get('http://192.168.42.1:8080', timeout=2)
+            curlwifi = wifi().wificonnect()
         except:
-            curlwifi.status_code = 1
-
-        if curlwifi.status_code == 200:
+            curlwifi = 0
+            
+        if curlwifi == 200:
             return {'wifilaunch': 'Wifi-Connect already running', 'status': 500}, 500
 
         #Check default hostname variables is not empty, and set if it is
@@ -193,3 +211,12 @@ class wifi:
         
         print({'wififorgetall': 'success', 'status': 200}, 200)
         return {'wififorgetall': 'success', 'status': 200}, 200
+
+    def wificonnect(self):
+
+        try:
+            curlwifi = requests.get('http://192.168.42.1:8080', timeout=2)
+        except requests.exceptions.Timeout:
+            return 408
+
+        return curlwifi.status_code
