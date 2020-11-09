@@ -21,7 +21,7 @@ try:
 
     #Check container and device hostname match
     if containerhostname != devicehostname.json()["network"]["hostname"]:
-        print("Container hostname and device hostname do not match. Likely a hostname" + \
+        print("Api-v1 - Container hostname and device hostname do not match. Likely a hostname" + \
         "change has been performed. Balena Supervisor should detect this and rebuild " + \
         "the container shortly. Waiting 90 seconds before continuing anyway.")
         time.sleep(90)

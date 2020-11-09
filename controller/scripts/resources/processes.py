@@ -42,7 +42,7 @@ def curl(**cmd):
                 return supervisorerror
 
         except requests.exceptions.Timeout:
-            print("Api-v1 - Waiting for Balena Supervisor to be ready. Retry " + str(retry))
+            print("Waiting for Balena Supervisor to be ready. Retry " + str(retry))
         
             if retry == cmd["supretries"]:
 
@@ -121,9 +121,7 @@ class wifi:
         else:
             cmd = f'/app/common/wifi-connect/wifi-connect -s {currenthostname} -o 8080 --ui-directory /app/common/wifi-connect/custom-ui'.split()
 
-        p = subprocess.Popen(cmd, stdout = subprocess.PIPE,
-                                stderr=subprocess.PIPE,
-                                stdin=subprocess.PIPE)
+        p = subprocess.Popen(cmd)
 
         if not p.returncode == None:
             return {'wifilaunch': 'Wifi-Connect launch failure.', 'status': 500}, 500
@@ -144,7 +142,7 @@ class wifi:
         for connection in connections:
             if connection.GetSettings()["connection"]["type"] == "802-11-wireless":
                 if connection.GetSettings()["802-11-wireless"]["ssid"] == currentssid:
-                    print("Api-v1 - Wififorget: Deleting connection "
+                    print("Wififorget: Deleting connection "
                         + connection.GetSettings()["connection"]["id"]
                     )
 
@@ -154,7 +152,7 @@ class wifi:
 
         #Check that a connection was deleted
         if not status:
-            print({'wififorget': 'Failed to delete connection.', 'status': 500}, 500)
+            print({'Failed to delete connection.)
             return {'wififorget': 'Failed to delete connection.', 'status': 500}, 500
 
         #Wait before trying to launch wifi-connect
@@ -163,10 +161,10 @@ class wifi:
         wifimessage, wifistatuscode = wifi().launch()
 
         if wifistatuscode != 200:
-            print('Api-v1 - wififorget - ' + str(wifimessage) + str(wifistatuscode))
+            print(str(wifimessage) + str(wifistatuscode))
             return {'wififorget': 'Failed to start wifi-connect', 'status': wifistatuscode}, wifistatuscode
-
-        print({'wififorget': 'success', 'status': 200}, 200)
+        
+        print('Success, connection deleted.')
         return {'wififorget': 'success', 'status': 200}, 200
 
     def forgetall():
@@ -182,7 +180,7 @@ class wifi:
 
         for connection in connections:
             if connection.GetSettings()["connection"]["type"] == "802-11-wireless":
-                print("Api-v1 - Wififorgetall: Deleting connection "
+                print("Deleting connection "
                     + connection.GetSettings()["connection"]["id"]
                 )
 
@@ -200,16 +198,16 @@ class wifi:
 
             #If wifi-connect didn't launch, change status code to 500 (internal server error)
             if wifistatuscode != 200:
-                print('Api-v1 - wififorgetall - ' + str(wifimessage) + str(wifistatuscode))
+                print(str(wifimessage) + str(wifistatuscode))
                 return {'wififorgetall': 'Failed to start wifi-connect', 'status': wifistatuscode}, wifistatuscode
 
         #Or if connection status when starting was 'connected' and a network has not been deleted
         elif connectionstate == 200 and status != 200:
             #Set error code to 500, failed to delete the attached network
-            print({'wififorgetall': 'Failed to delete the attached network.', 'status': 500}, 500)
+            print({'Failed to delete the attached network.')
             return {'wififorgetall': 'Failed to delete the attached network.', 'status': 500}, 500
         
-        print({'wififorgetall': 'success', 'status': 200}, 200)
+        print('Success, connection deleted.')
         return {'wififorgetall': 'success', 'status': 200}, 200
 
     def wificonnect(self):
