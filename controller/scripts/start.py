@@ -3,7 +3,7 @@ from flask_restful import Resource, Api
 from resources.resources import connectionstatus, device, healthcheck, hostconfig, journallogs, update, uuid, wififorget, wififorgetall
 from resources.processes import curl, wifi
 import resources.globals
-import os, time, logging
+import time, logging, subprocess
 
 app = Flask(__name__)
 
@@ -20,7 +20,7 @@ time.sleep(20)
 
 try:
     #Fetch container hostname and device hostname
-    containerhostname = os.popen('hostname').read().strip()
+    containerhostname = subprocess.run(["hostname"], capture_output=True, text=True).stdout.rstrip()
     devicehostname = curl(method = "get", path = "/v1/device/host-config?apikey=", timeout = 5, supretries = 10)
 
     #Check container and device hostname match
@@ -34,7 +34,7 @@ except:
     print("Api-v1 - Failed to compare hostnames, starting anyway...")
 
 #If connected to a wifi network then update device, otherwise launch wifi-connect
-connected = os.popen('iwgetid -r').read().strip()
+connected = subprocess.run(["iwgetid", "-r"], capture_output=True, text=True).stdout.rstrip()
 if connected:
     update().get()
     print("Api-v1 - API Started - Device connected to local wifi")

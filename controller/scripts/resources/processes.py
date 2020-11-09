@@ -1,9 +1,9 @@
 import resources.config, resources.globals
-import os, requests, NetworkManager, time, subprocess
+import requests, NetworkManager, time, subprocess
 
 def checkconnection():
 
-    run = os.popen('iwgetid -r').read().strip()
+    run = subprocess.run(["iwgetid", "-r"], capture_output=True, text=True).stdout.rstrip()
 
     if run:
         return {'connectionstatus': 'connected', 'status': 200}, 200
@@ -105,7 +105,7 @@ class wifi:
 
         #Get the current hostname of the container, and set a default on failure
         try:
-            currenthostname = os.popen('hostname').read().strip()
+            currenthostname = subprocess.run(["hostname"], capture_output=True, text=True).stdout.rstrip()
         except:
             currenthostname = resources.config.deafultssid
 
@@ -136,7 +136,7 @@ class wifi:
         time.sleep(5)
 
         #Get the name of the current wifi network
-        currentssid = os.popen('iwgetid -r').read().strip()
+        currentssid = subprocess.run(["iwgetid", "-r"], capture_output=True, text=True).stdout.rstrip()
 
         #Get a list of all connections
         connections = NetworkManager.Settings.ListConnections()
