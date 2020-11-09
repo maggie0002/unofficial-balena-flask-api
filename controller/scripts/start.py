@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_restful import Resource, Api
 from resources.resources import connectionstatus, device, healthcheck, hostconfig, journallogs, update, uuid, wififorget, wififorgetall
-from resources.processes import curl, wifi
+from resources.processes import curl, wifi, wificonnect
 import resources.globals
 import time, logging, subprocess
 
@@ -31,16 +31,17 @@ except:
 
 #If connected to a wifi network then update device, otherwise launch wifi-connect
 connected = subprocess.run(["iwgetid", "-r"], capture_output=True, text=True).stdout.rstrip()
+
 if connected:
     update().get()
-    print("Api-v1 - API Started - Device connected to local wifi")
+    print("Api-v1 - API Started - Device connected to local wifi.")
 else:
-    wifimessage, wifistatuscode = wifi().launch()
-
-    if wifistatuscode != 200:
-        print('Api-v1 - start.py unable to start wifi - ' + str(wifimessage))
+    wifimessage, wifistatuscode = wificonnect().start()
+    
+    if wifistatuscode == 200:
+        print("Api-v1 - API Started - Wifi-Connect launched.")
     else:
-        print("Api-v1 - API Started - Controller launched")
+        print(str(wifimessage), str(wifistatuscode))
 
 #Configure API access points
 if __name__ == '__main__':

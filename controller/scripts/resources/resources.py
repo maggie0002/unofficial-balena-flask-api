@@ -29,6 +29,7 @@ class device(Resource):
 
 class healthcheck(Resource):
     def get(self):
+        
         serving.WSGIRequestHandler.log_request = log_request
         return {'healthcheck': 'ok', 'status': 200}, 200
 
