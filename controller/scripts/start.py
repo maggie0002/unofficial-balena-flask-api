@@ -9,10 +9,6 @@ app = Flask(__name__)
 
 api = Api(app)
 
-#Disable Werkzeug logging to avoid flooding with access logs
-log = logging.getLogger('werkzeug')
-log.setLevel(logging.ERROR)
-
 print("Api-v1 - Starting API...")
 
 #Wait for any saved connections to reconnect
