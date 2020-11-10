@@ -3,7 +3,7 @@ from flask_restful import Resource, Api
 from resources.resources import connectionstatus, device, healthcheck, hostconfig, journallogs, update, uuid, wififorget, wififorgetall
 from resources.processes import curl, wifi, wificonnect
 import resources.globals
-import time, logging, subprocess
+import atexit, logging, subprocess, time
 
 app = Flask(__name__)
 
