@@ -15,11 +15,6 @@ def curl(**cmd):
     #Check Balena Supervisor is ready
     retry = 1
 
-    if not hasattr(cmd, 'timeout'):
-        cmd["timeout"] = 3
-    if not hasattr(cmd, 'supretries'):
-        cmd["supretries"] = 4
-
     while True:
         try:
             supervisorstatus = requests.get(
