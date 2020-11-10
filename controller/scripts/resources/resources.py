@@ -1,4 +1,4 @@
-from flask_restful import Resource, abort
+from flask_restful import abort, Resource
 from werkzeug import serving
 from resources.processes import checkconnection, curl, wifi
 import resources.globals

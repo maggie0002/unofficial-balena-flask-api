@@ -1,5 +1,20 @@
 import resources.config, resources.globals
-import requests, NetworkManager, time, subprocess
+import NetworkManager, requests, time, subprocess, sys
+
+#Handle exiting with soft wifi-connect shutdown
+def handle_exit(*args):
+
+    try:
+        try:
+            global wifip
+            wifip.terminate()
+            wifip.communicate(timeout=10)
+        except subprocess.TimeoutExpired:
+            wifip.kill()
+    except:
+        print("Wifi-connect was already down.")
+    print("Finshed the exit process")
+    sys.exit(0)
 
 def checkconnection():
 
@@ -10,7 +25,7 @@ def checkconnection():
     else:
         return {'connectionstatus': 'not connected', 'status': 206}, 206
 
-def curl(**cmd):
+def curl(supretries=4, timeout=3, **cmd):
 
     #Check Balena Supervisor is ready
     retry = 1
@@ -33,7 +48,7 @@ def curl(**cmd):
         except requests.exceptions.Timeout:
             print("Waiting for Balena Supervisor to be ready. Retry " + str(retry))
         
-            if retry == cmd["supretries"]:
+            if retry == supretries:
 
                 class supervisortimeout:
                     text = "Supervisor Timeout"
@@ -49,7 +64,7 @@ def curl(**cmd):
             response = requests.post(
                 f'{resources.globals.BALENA_SUPERVISOR_ADDRESS}{cmd["path"]}{resources.globals.BALENA_SUPERVISOR_API_KEY}',
                 json=[cmd["string"]],
-                headers={"Content-Type": "application/json"}, timeout=cmd["timeout"]
+                headers={"Content-Type": "application/json"}, timeout=timeout
             )
 
         elif cmd["method"] == 'patch':
@@ -57,14 +72,14 @@ def curl(**cmd):
             response = requests.patch(
                 f'{resources.globals.BALENA_SUPERVISOR_ADDRESS}{cmd["path"]}{resources.globals.BALENA_SUPERVISOR_API_KEY}',
                 data=cmd["string"],
-                headers={"Content-Type": "application/json"}, timeout=cmd["timeout"]
+                headers={"Content-Type": "application/json"}, timeout=timeout
             )
 
         elif cmd["method"] == 'get':
 
             response = requests.get(
                 f'{resources.globals.BALENA_SUPERVISOR_ADDRESS}{cmd["path"]}{resources.globals.BALENA_SUPERVISOR_API_KEY}',
-                headers={"Content-Type": "application/json"}, timeout=cmd["timeout"]
+                headers={"Content-Type": "application/json"}, timeout=timeout
             )
     except requests.exceptions.Timeout:
         print("Curl request timed out")

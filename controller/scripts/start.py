@@ -3,7 +3,7 @@ from flask_restful import Resource, Api
 from resources.resources import connectionstatus, device, healthcheck, hostconfig, journallogs, update, uuid, wififorget, wififorgetall
 from resources.processes import curl, wifi, wificonnect
 import resources.globals
-import logging, subprocess, time
+import atexit, logging, signal, subprocess, time
 
 app = Flask(__name__)
 
@@ -17,7 +17,7 @@ time.sleep(20)
 try:
     #Fetch container hostname and device hostname
     containerhostname = subprocess.run(["hostname"], capture_output=True, text=True).stdout.rstrip()
-    devicehostname = curl(method = "get", path = "/v1/device/host-config?apikey=", timeout = 5, supretries = 10)
+    devicehostname = curl(method = "get", path = "/v1/device/host-config?apikey=", supretries = 10, timeout = 5)
 
     #Check container and device hostname match
     if containerhostname != devicehostname.json()["network"]["hostname"]:
@@ -42,6 +42,10 @@ else:
         print("Api-v1 - API Started - Wifi-Connect launched.")
     else:
         print(str(wifimessage), str(wifistatuscode))
+
+atexit.register(resources.processes.handle_exit, None, None)
+signal.signal(signal.SIGTERM, resources.processes.handle_exit)
+signal.signal(signal.SIGINT, resources.processes.handle_exit)
 
 #Configure API access points
 if __name__ == '__main__':

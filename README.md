@@ -13,7 +13,7 @@ Current features include ability to:
 - Disconnect wifi-connect and clear the saved connection
 - Disconnect and clear all saved wifi connections
 - Change the device hostname
-- Amend the wifi-connect SSID to to match the hostname when the hostname is changed
+- Amend the wifi-connect SSID to match the hostname when the hostname is changed
 - Retrive journald logs to your browser
 - Update the device containers from your Open Balena or Balena cloud instance
 - Get the device UUID
