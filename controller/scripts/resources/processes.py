@@ -220,17 +220,16 @@ class wificonnect:
             print("wifi-connect not started")
             return 1
 
-        if wifipoll == None:
-            
-            try:
-                wifip.terminate()
-                wifip.communicate(timeout=10)
-            except subprocess.TimeoutExpired:
-                wifip.kill()
+        if wifipoll != None:
 
-        else:
             print("wifi-connect already stopped")
             return 1
+
+        try:
+            wifip.terminate()
+            wifip.communicate(timeout=10)
+        except subprocess.TimeoutExpired:
+            wifip.kill()
 
         return 0
 
@@ -256,9 +255,6 @@ class wificonnect:
             return 0
 
         elif curlwifi == "down" and wifipoll != None:
-            return 1
-
-        elif curlwifi == "down" and wifipoll == "down":
             return 1
 
         else: 
