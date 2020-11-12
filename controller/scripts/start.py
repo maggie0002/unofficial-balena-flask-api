@@ -17,14 +17,14 @@ time.sleep(20)
 try:
     #Fetch container hostname and device hostname
     containerhostname = subprocess.run(["hostname"], capture_output=True, text=True).stdout.rstrip()
-    devicehostname = curl(method = "get", path = "/v1/device/host-config?apikey=", supretries = 10, timeout = 5)
+    devicehostname = curl(method = "get", path = "/v1/device/host-config?apikey=", supretries = 20)
 
     #Check container and device hostname match
     if containerhostname != devicehostname.json()["network"]["hostname"]:
         print("Api-v1 - Container hostname and device hostname do not match. Likely a hostname" + \
         "change has been performed. Balena Supervisor should detect this and rebuild " + \
         "the container shortly. Waiting 90 seconds before continuing anyway.")
-        time.sleep(90)
+        time.sleep(30)
 
 except:
     print("Api-v1 - Failed to compare hostnames, starting anyway...")

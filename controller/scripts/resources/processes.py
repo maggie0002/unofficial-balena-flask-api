@@ -25,7 +25,7 @@ def checkconnection():
     else:
         return {'connectionstatus': 'not connected', 'status': 206}, 206
 
-def curl(supretries=4, timeout=3, **cmd):
+def curl(supretries=8, timeout=3, **cmd):
 
     #Check Balena Supervisor is ready
     retry = 1
@@ -55,7 +55,7 @@ def curl(supretries=4, timeout=3, **cmd):
                     status_code = 408
                 return supervisortimeout
             
-            time.sleep(4)
+            time.sleep(2)
             retry = retry + 1
 
     #Process curl request 
@@ -121,7 +121,7 @@ class wifi:
             return 500
 
         #Wait before trying to launch wifi-connect
-        time.sleep(5)
+        time.sleep(2)
 
         wifimessage, wifistatuscode = wificonnect().start()
 
@@ -157,7 +157,7 @@ class wifi:
                 connection.Delete()
 
         #Wait before trying to launch wifi-connect
-        time.sleep(5)
+        time.sleep(2)
 
         wifimessage, wifistatuscode = wificonnect().start()
 
@@ -203,7 +203,7 @@ class wificonnect:
             cmd = f'/app/common/wifi-connect/wifi-connect -s {currenthostname} -o 8080 --ui-directory /app/common/wifi-connect/custom-ui'.split()
 
         wifip = subprocess.Popen(cmd)
-        time.sleep(2)
+        time.sleep(3)
 
         if not wifip.poll() == None:
             return {'wifilaunch': 'Wifi-Connect launch failure.', 'status': 500}, 500
