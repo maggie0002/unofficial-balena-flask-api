@@ -1,6 +1,6 @@
 from flask import Flask
 from flask_restful import Resource, Api
-from resources.resources import connectionstatus, device, healthcheck, hostconfig, journallogs, update, uuid, wififorget, wififorgetall
+from resources.resources import wificonnectionstatus, device, healthcheck, hostconfig, journallogs, update, uuid, wififorget, wififorgetall
 from resources.processes import curl, wifi, wificonnect
 import resources.globals
 import atexit, logging, signal, subprocess, time
@@ -55,7 +55,7 @@ signal.signal(signal.SIGINT, resources.processes.handle_exit)
 
 #Configure API access points
 if __name__ == '__main__':
-    api.add_resource(connectionstatus, '/v1/connectionstatus')
+    api.add_resource(wificonnectionstatus, '/v1/wificonnectionstatus')
     api.add_resource(device, '/v1/device')
     api.add_resource(healthcheck, '/')
     api.add_resource(hostconfig, '/v1/hostconfig/<hostname>') 

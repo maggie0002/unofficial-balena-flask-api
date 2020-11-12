@@ -20,7 +20,7 @@ Current features include ability to:
 - Get device info
 
 By default, available on http://yourdeviceiporhostname:9090/v1/-insert-one-of-following-variables-here-
-- connectionstatus
+- wificonnectionstatus
 - device
 - hostconfig/yournewhostnamehere
 - journallogs

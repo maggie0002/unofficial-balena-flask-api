@@ -13,7 +13,7 @@ def log_request(self, *args, **kwargs):
 
     parent_log_request(self, *args, **kwargs)
 
-class connectionstatus(Resource):
+class wificonnectionstatus(Resource):
     def get(self):
 
         response, status_code = checkconnection()

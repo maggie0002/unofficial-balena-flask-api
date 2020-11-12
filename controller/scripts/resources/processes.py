@@ -21,9 +21,9 @@ def checkconnection():
     run = subprocess.run(["iwgetid", "-r"], capture_output=True, text=True).stdout.rstrip()
 
     if run:
-        return {'connectionstatus': 'connected', 'status': 200}, 200
+        return {'wificonnectionstatus': 'connected', 'status': 200}, 200
     else:
-        return {'connectionstatus': 'not connected', 'status': 206}, 206
+        return {'wificonnectionstatus': 'not connected', 'status': 206}, 206
 
 def curl(supretries=8, timeout=1, **cmd):
 
