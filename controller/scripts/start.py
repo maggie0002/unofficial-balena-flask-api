@@ -30,18 +30,23 @@ except:
     print("Api-v1 - Failed to compare hostnames, starting anyway...")
 
 #If connected to a wifi network then update device, otherwise launch wifi-connect
-connected = subprocess.run(["iwgetid", "-r"], capture_output=True, text=True).stdout.rstrip()
+try:
+    connected = subprocess.run(["iwgetid", "-r"], capture_output=True, text=True).stdout.rstrip()
+except:
+    connected = None
 
 if connected:
     update().get()
     print("Api-v1 - API Started - Device connected to local wifi.")
 else:
-    wifimessage, wifistatuscode = wificonnect().start()
-    
-    if wifistatuscode == 200:
-        print("Api-v1 - API Started - Wifi-Connect launched.")
-    else:
-        print(str(wifimessage), str(wifistatuscode))
+    try:
+        wifimessage, wifistatuscode = wificonnect().start()
+        if wifistatuscode == 200:
+            print("Api-v1 - API Started - Wifi-Connect launched.")
+        else:
+            print(str(wifimessage), str(wifistatuscode))
+    except: 
+        print("Wifi-connect failed to launch")
 
 atexit.register(resources.processes.handle_exit, None, None)
 signal.signal(signal.SIGTERM, resources.processes.handle_exit)

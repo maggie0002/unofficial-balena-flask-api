@@ -126,9 +126,13 @@ class wifi:
         wifimessage, wifistatuscode = wificonnect().start()
 
         #If wifi-connect didn't launch, change status code to 500 (internal server error)
-        if wifistatuscode != 200:
-            print(str(wifimessage) + str(wifistatuscode))
-            return wifimessage, wifistatuscode
+        try:
+            if wifistatuscode != 200:
+                print(str(wifimessage) + str(wifistatuscode))
+                return wifimessage, wifistatuscode
+        except NameError:
+            print("Wifi connect failed to launch")
+            return "Wifi connect failed to launch"
 
         print('Success, connection deleted.')
         return 200
@@ -158,9 +162,13 @@ class wifi:
         wifimessage, wifistatuscode = wificonnect().start()
 
         #If wifi-connect didn't launch, change status code to 500 (internal server error)
-        if wifistatuscode != 200:
-            print(str(wifimessage) + str(wifistatuscode))
-            return wifimessage, wifistatuscode
+        try:
+            if wifistatuscode != 200:
+                print(str(wifimessage) + str(wifistatuscode))
+                return wifimessage, wifistatuscode
+        except NameError:
+            print("Wifi connect failed to launch")
+            return "Wifi connect failed to launch"
         
         print('Success, all wi-fi connections deleted, wifi-connect started.')
         return 200
@@ -232,6 +240,10 @@ class wificonnect:
         
         try:
             curlwifi = requests.get('http://192.168.42.1:8080', timeout=2)
+            if curlwifi.status_code == 200:
+                curlwifi = "up"
+            else:
+                curlwifi = "down"
         except requests.exceptions.Timeout:
             curlwifi = "down"
 
@@ -240,7 +252,7 @@ class wificonnect:
         except:
             wifipoll = "down"   
 
-        if curlwifi.status_code == 200 and wifipoll == None:
+        if curlwifi == "up" and wifipoll == None:
             return 0
 
         elif curlwifi == "down" and wifipoll != None:
