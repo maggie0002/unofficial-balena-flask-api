@@ -33,6 +33,7 @@ except:
 try:
     connected = subprocess.run(["iwgetid", "-r"], capture_output=True, text=True).stdout.rstrip()
 except:
+    print("Api-v1 - Error executing iwgetid. Starting wifi-connect in order to allow debugging.")
     connected = None
 
 if connected:
