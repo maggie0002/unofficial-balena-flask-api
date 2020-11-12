@@ -93,6 +93,9 @@ def curl(supretries=8, timeout=1, **cmd):
 class wifi:
 
     def forget():
+        
+        status = 1
+        
         #Wait so user gets return code before disconnecting
         time.sleep(5)
 
@@ -111,14 +114,14 @@ class wifi:
                         + connection.GetSettings()["connection"]["id"]
                     )
 
-                    #Delete the identified connection and change status code to 200 (success)
+                    #Delete the identified connection and change status code to 0 (success)
                     connection.Delete()
                     status = 0
 
         #Check that a connection was deleted
-        if not status:
-            print('Failed to delete connection.')
-            return 500
+        if status == 1:
+            print('Failed to delete connection, trying to clear all saved connections and continuing.')
+            wifi.forgetall()
 
         #Wait before trying to launch wifi-connect
         time.sleep(2)
