@@ -203,7 +203,7 @@ class wificonnect:
             cmd = f'/app/common/wifi-connect/wifi-connect -s {currenthostname} -o 8080 --ui-directory /app/common/wifi-connect/custom-ui'.split()
 
         wifip = subprocess.Popen(cmd)
-        time.sleep(3)
+        time.sleep(4)
 
         if not wifip.poll() == None:
             return {'wifilaunch': 'Wifi-Connect launch failure.', 'status': 500}, 500

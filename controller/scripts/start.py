@@ -24,7 +24,7 @@ try:
         print("Api-v1 - Container hostname and device hostname do not match. Likely a hostname" + \
         "change has been performed. Balena Supervisor should detect this and rebuild " + \
         "the container shortly. Waiting 90 seconds before continuing anyway.")
-        time.sleep(30)
+        time.sleep(20)
 
 except:
     print("Api-v1 - Failed to compare hostnames, starting anyway...")
