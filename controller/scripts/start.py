@@ -38,7 +38,7 @@ except Exception as ex:
 
 if connected:
     update().get()
-    print("Api-v1 - API Started - Device connected to local wifi.")
+    print("Api-v1 - API Started - Device already connected to local wifi.")
 else:
     try:
         wifimessage, wifistatuscode = wificonnect().start()
