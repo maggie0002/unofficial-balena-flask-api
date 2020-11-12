@@ -48,7 +48,7 @@ class hostconfig(Resource):
 class journallogs(Resource):
     def get(self):
 
-        response = curl(method = "post", path  = "/v2/journal-logs?apikey=", string = '("follow", "false", "all", "true", "format", "short")', timeout = 10)
+        response = curl(method = "post", path  = "/v2/journal-logs?apikey=", string = '("follow", "false", "all", "true", "format", "short")')
 
         return response.text
 

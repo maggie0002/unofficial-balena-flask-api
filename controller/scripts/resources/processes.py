@@ -9,10 +9,10 @@ def handle_exit(*args):
             global wifip
             wifip.terminate()
             wifip.communicate(timeout=10)
-        except subprocess.TimeoutExpired:
+        except Exception:
             wifip.kill()
-    except:
-        print("Wifi-connect was already down.")
+    except Exception as ex:
+        print("Wifi-connect was already down. " + str(ex))
     print("Finshed the exit process")
     sys.exit(0)
 
@@ -25,7 +25,7 @@ def checkconnection():
     else:
         return {'connectionstatus': 'not connected', 'status': 206}, 206
 
-def curl(supretries=8, timeout=3, **cmd):
+def curl(supretries=8, timeout=1, **cmd):
 
     #Check Balena Supervisor is ready
     retry = 1
@@ -34,24 +34,24 @@ def curl(supretries=8, timeout=3, **cmd):
         try:
             supervisorstatus = requests.get(
                 f'{resources.globals.BALENA_SUPERVISOR_ADDRESS}/ping',
-                headers={"Content-Type": "application/json"}, timeout=1
+                headers={"Content-Type": "application/json"}, timeout=timeout
             ) 
 
             if supervisorstatus.status_code == 200:
                 break
             else:
                 class supervisorerror:
-                    text = "Supervisor returned error code"
+                    text = f'Supervisor returned error code {supervisorstatus.status_code}'
                     status_code = 500
                 return supervisorerror
 
-        except requests.exceptions.Timeout:
-            print("Waiting for Balena Supervisor to be ready. Retry " + str(retry))
+        except Exception as ex:
+            print("Waiting for Balena Supervisor to be ready. Retry " + str(retry) + str(ex))
         
             if retry == supretries:
 
                 class supervisortimeout:
-                    text = "Supervisor Timeout"
+                    text = ex
                     status_code = 408
                 return supervisortimeout
             
@@ -81,10 +81,10 @@ def curl(supretries=8, timeout=3, **cmd):
                 f'{resources.globals.BALENA_SUPERVISOR_ADDRESS}{cmd["path"]}{resources.globals.BALENA_SUPERVISOR_API_KEY}',
                 headers={"Content-Type": "application/json"}, timeout=timeout
             )
-    except requests.exceptions.Timeout:
-        print("Curl request timed out")
+    except Exception as ex:
+        print("Curl request timed out. " + str(ex))
         class curlstatus:
-            text = "Supervisor Timeout"
+            text = ex
             status_code = 408
         return curlstatus
 
@@ -130,8 +130,8 @@ class wifi:
             if wifistatuscode != 200:
                 print(str(wifimessage) + str(wifistatuscode))
                 return wifimessage, wifistatuscode
-        except NameError:
-            print("Wifi connect failed to launch")
+        except Exception as ex:
+            print("Wifi connect failed to launch. " + str(ex))
             return "Wifi connect failed to launch"
 
         print('Success, connection deleted.')
@@ -166,8 +166,8 @@ class wifi:
             if wifistatuscode != 200:
                 print(str(wifimessage) + str(wifistatuscode))
                 return wifimessage, wifistatuscode
-        except NameError:
-            print("Wifi connect failed to launch")
+        except Exception as ex:
+            print("Wifi connect failed to launch. " + str(ex))
             return "Wifi connect failed to launch"
         
         print('Success, all wi-fi connections deleted, wifi-connect started.')
@@ -181,19 +181,19 @@ class wificonnect:
         #Check default hostname variables is not empty, and set if it is
         try:
             resources.config.defaulthostname
-        except NameError:
+        except Exception:
             resources.config.defaulthostname = 'defaulthostname'
 
         #Get the current hostname of the container, and set a default on failure
         try:
             currenthostname = subprocess.run(["hostname"], capture_output=True, text=True).stdout.rstrip()
-        except:
+        except Exception:
             currenthostname = resources.config.deafultssid
 
         #Check the current hostname variable is not empty, and set if it is
         try:
             currenthostname
-        except NameError:
+        except Exception:
             currenthostname = resources.config.deafultssid
 
         #Decide whether to use default SSID or match hostname
@@ -216,7 +216,7 @@ class wificonnect:
 
         try:
             wifipoll = wifip.poll()
-        except:
+        except Exception:
             print("wifi-connect not started")
             return 1
 
@@ -228,7 +228,7 @@ class wificonnect:
         try:
             wifip.terminate()
             wifip.communicate(timeout=10)
-        except subprocess.TimeoutExpired:
+        except Exception:
             wifip.kill()
 
         return 0
@@ -238,17 +238,17 @@ class wificonnect:
         global wifip
         
         try:
-            curlwifi = requests.get('http://192.168.42.1:8080', timeout=2)
+            curlwifi = requests.get('http://192.168.42.1:8080', timeout=1)
             if curlwifi.status_code == 200:
                 curlwifi = "up"
             else:
                 curlwifi = "down"
-        except requests.exceptions.Timeout:
+        except Exception:
             curlwifi = "down"
 
         try:
             wifipoll = wifip.poll()
-        except:
+        except Exception:
             wifipoll = "down"   
 
         if curlwifi == "up" and wifipoll == None:
