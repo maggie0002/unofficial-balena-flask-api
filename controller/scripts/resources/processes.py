@@ -16,15 +16,6 @@ def handle_exit(*args):
     print("Finshed the exit process")
     sys.exit(0)
 
-def checkconnection():
-
-    run = subprocess.run(["iwgetid", "-r"], capture_output=True, text=True).stdout.rstrip()
-
-    if run:
-        return {'wificonnectionstatus': 'connected', 'status': 200}, 200
-    else:
-        return {'wificonnectionstatus': 'not connected', 'status': 206}, 206
-
 def curl(supretries=8, timeout=1, **cmd):
 
     #Check Balena Supervisor is ready
@@ -91,6 +82,15 @@ def curl(supretries=8, timeout=1, **cmd):
     return response
 
 class wifi:
+
+    def checkconnection():
+
+        run = subprocess.run(["iwgetid", "-r"], capture_output=True, text=True).stdout.rstrip()
+
+        if run:
+            return {'wificonnectionstatus': 'connected', 'status': 200}, 200
+        else:
+            return {'wificonnectionstatus': 'not connected', 'status': 206}, 206
 
     def forget():
         

@@ -1,6 +1,6 @@
 from flask_restful import abort, Resource
 from werkzeug import serving
-from resources.processes import checkconnection, curl, wifi
+from resources.processes import curl, wifi
 import resources.globals
 import threading
 
@@ -16,7 +16,7 @@ def log_request(self, *args, **kwargs):
 class wificonnectionstatus(Resource):
     def get(self):
 
-        response, status_code = checkconnection()
+        response, status_code = wifi.checkconnection()
 
         return response, status_code
 
@@ -68,7 +68,7 @@ class wififorget(Resource):
     def get(self):
 
         #Check and store the current connection state
-        _, connectionstate = checkconnection()
+        _, connectionstate = wifi.checkconnection()
 
         #If the device is connected to a wifi network
         if connectionstate != 200:
