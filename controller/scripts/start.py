@@ -27,7 +27,7 @@ try:
         time.sleep(20)
 
 except Exception as ex:
-    print("Api-v1 - Failed to compare hostnames, starting anyway..." + str(ex) + str(devicehostname[1]))
+    print("Api-v1 - Failed to compare hostnames, starting anyway..." + str(ex))
 
 #If connected to a wifi network then update device, otherwise launch wifi-connect
 try:
