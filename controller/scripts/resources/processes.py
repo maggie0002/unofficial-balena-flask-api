@@ -16,7 +16,7 @@ def handle_exit(*args):
     print("Finshed the exit process")
     sys.exit(0)
 
-def curl(supretries=8, timeout=1, **cmd):
+def curl(supretries=8, timeout=5, **cmd):
 
     #Check Balena Supervisor is ready
     retry = 1
@@ -31,20 +31,14 @@ def curl(supretries=8, timeout=1, **cmd):
             if supervisorstatus.status_code == 200:
                 break
             else:
-                class supervisorerror:
-                    text = f'Supervisor returned error code {supervisorstatus.status_code}'
-                    status_code = 500
-                return supervisorerror
+                return ['Supervisor returned error code.', supervisorstatus.status_code]
 
         except Exception as ex:
             print("Waiting for Balena Supervisor to be ready. Retry " + str(retry) + str(ex))
         
             if retry == supretries:
 
-                class supervisortimeout:
-                    text = ex
-                    status_code = 408
-                return supervisortimeout
+                return [str(ex).rstrip(), 408]
             
             time.sleep(2)
             retry = retry + 1
@@ -74,23 +68,17 @@ def curl(supretries=8, timeout=1, **cmd):
             )
     except Exception as ex:
         print("Curl request timed out. " + str(ex))
-        class curlstatus:
-            text = ex
-            status_code = 408
-        return curlstatus
+        return [str(ex).rstrip(), 408]
 
-    return response
+    return [response.text, response.status_code, response]
 
 class wifi:
 
-    def checkconnection():
+    def checkconnection(self):
 
         run = subprocess.run(["iwgetid", "-r"], capture_output=True, text=True).stdout.rstrip()
 
-        if run:
-            return {'wificonnectionstatus': 'connected', 'status': 200}, 200
-        else:
-            return {'wificonnectionstatus': 'not connected', 'status': 206}, 206
+        return run
 
     def forget():
         
@@ -102,7 +90,7 @@ class wifi:
         wificonnect().stop()
 
         #Get the name of the current wifi network
-        currentssid = subprocess.run(["iwgetid", "-r"], capture_output=True, text=True).stdout.rstrip()
+        currentssid = wifi().checkconnection()
 
         #Get a list of all connections
         connections = NetworkManager.Settings.ListConnections()
@@ -120,8 +108,9 @@ class wifi:
 
         #Check that a connection was deleted
         if status == 1:
-            print('Failed to delete connection, trying to clear all saved connections and continuing.')
+            print('Failed to delete connection, trying to clear all saved connections.')
             wifi.forgetall()
+            return "Wifi connect failed to launch, attempted wififorgetall."
 
         #Wait before trying to launch wifi-connect
         time.sleep(2)
@@ -135,7 +124,7 @@ class wifi:
                 return wifimessage, wifistatuscode
         except Exception as ex:
             print("Wifi connect failed to launch. " + str(ex))
-            return "Wifi connect failed to launch"
+            return "Wifi connect failed to launch."
 
         print('Success, connection deleted.')
         return 200
@@ -241,7 +230,7 @@ class wificonnect:
         global wifip
         
         try:
-            curlwifi = requests.get('http://192.168.42.1:8080', timeout=1)
+            curlwifi = requests.get('http://192.168.42.1:8080', timeout=5)
             if curlwifi.status_code == 200:
                 curlwifi = "up"
             else:

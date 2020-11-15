@@ -20,18 +20,18 @@ try:
     devicehostname = curl(method = "get", path = "/v1/device/host-config?apikey=", supretries = 20)
 
     #Check container and device hostname match
-    if containerhostname != devicehostname.json()["network"]["hostname"]:
+    if containerhostname != devicehostname[2].json()["network"]["hostname"]:
         print("Api-v1 - Container hostname and device hostname do not match. Likely a hostname" + \
         "change has been performed. Balena Supervisor should detect this and rebuild " + \
         "the container shortly. Waiting 90 seconds before continuing anyway.")
         time.sleep(20)
 
 except Exception as ex:
-    print("Api-v1 - Failed to compare hostnames, starting anyway..." + str(ex))
+    print("Api-v1 - Failed to compare hostnames, starting anyway..." + str(ex) + str(devicehostname[1]))
 
 #If connected to a wifi network then update device, otherwise launch wifi-connect
 try:
-    connected = subprocess.run(["iwgetid", "-r"], capture_output=True, text=True).stdout.rstrip()
+    connected = wifi().checkconnection()
 except Exception as ex:
     print("Api-v1 - Error executing iwgetid. Starting wifi-connect in order to allow debugging. " + str(ex))
     connected = None
