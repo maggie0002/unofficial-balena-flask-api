@@ -31,14 +31,14 @@ def curl(supretries=8, timeout=5, **cmd):
             if supervisorstatus.status_code == 200:
                 break
             else:
-                return ['Supervisor returned error code.', supervisorstatus.status_code]
+                return {"text": "Supervisor returned error code.", "status_code": supervisorstatus.status_code, "jsonresponse": "Supervisor returned error code."}
 
         except Exception as ex:
-            print("Waiting for Balena Supervisor to be ready. Retry " + str(retry) + str(ex))
+            print(f'Waiting for Balena Supervisor to be ready. {str(ex)}. Retry {str(retry)}.')
         
             if retry == supretries:
 
-                return [str(ex).rstrip(), 408]
+                return {"text": str(ex).rstrip(), "status_code": 408, "jsonresponse": str(ex).rstrip()}
             
             time.sleep(2)
             retry = retry + 1
@@ -68,9 +68,14 @@ def curl(supretries=8, timeout=5, **cmd):
             )
     except Exception as ex:
         print("Curl request timed out. " + str(ex))
-        return [str(ex).rstrip(), 408]
+        return {"text": str(ex).rstrip(), "status_code": 408, "jsonresponse": "Curl request timed out."}
 
-    return [response.text, response.status_code, response]
+    try: 
+        response.json()
+    except Exception:
+        return {"text": response.text, "status_code": response.status_code}
+
+    return {"text": response.text, "status_code": response.status_code, "jsonresponse": response.json()}
 
 class wifi:
 

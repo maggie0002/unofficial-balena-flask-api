@@ -28,7 +28,7 @@ class device(Resource):
 
         response = curl(method = "get", path = "/v1/device?apikey=")
 
-        return response[2].json(), response[1]
+        return response["jsonresponse"], response["status_code"]
 
 class healthcheck(Resource):
     def get(self):
@@ -46,21 +46,21 @@ class hostconfig(Resource):
 
         response = curl(method = "patch", path = "/v1/device/host-config?apikey=", string = '{"network": {"hostname": "%s"}}'%(hostname))
 
-        return {'hostconfig': f'{response[0]}', 'status': response[1]}, response[1]
+        return {'hostconfig': response["text"], 'status': response["status_code"]}, response["status_code"]
 
 class journallogs(Resource):
     def get(self):
 
         response = curl(method = "post", path  = "/v2/journal-logs?apikey=", string = '("follow", "false", "all", "true", "format", "short")')
 
-        return response[0], response[1]
+        return response["text"], response["status_code"]
 
 class update(Resource):
     def get(self):
 
         response = curl(method ="post", path = "/v1/update?apikey=", string = '("force", "true")')
 
-        return {'update': f'{response[0]}', 'status': response[1]}, response[1]
+        return {'update': response["text"], 'status': response["status_code"]}, response["status_code"]
 
 class uuid(Resource):
     def get(self):
