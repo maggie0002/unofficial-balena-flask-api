@@ -19,9 +19,9 @@ class wificonnectionstatus(Resource):
         response = wifi().checkconnection()
 
         if response:
-            return {'wificonnectionstatus': 'connected', 'status': 200}, 200
+            return {'wificonnectionstatus': 'Connected', 'status': 200}, 200
         else:
-            return {'wificonnectionstatus': 'not connected', 'status': 206}, 206
+            return {'wificonnectionstatus': 'Not connected', 'status': 206}, 206
 
 class device(Resource):
     def get(self):
@@ -65,7 +65,7 @@ class update(Resource):
 class uuid(Resource):
     def get(self):
 
-        return {'uuid': resources.globals.BALENA_DEVICE_UUID}
+        return {'uuid': resources.globals.BALENA_DEVICE_UUID}, 200
 
 class wififorget(Resource):
     def get(self):
