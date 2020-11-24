@@ -13,16 +13,6 @@ def log_request(self, *args, **kwargs):
 
     parent_log_request(self, *args, **kwargs)
 
-class wificonnectionstatus(Resource):
-    def get(self):
-
-        response = wifi().checkconnection()
-
-        if response:
-            return {'status': 200, 'message': 'connected'}, 200
-        else:
-            return {'status': 206, 'message': 'disconnected'}, 206
-
 class device(Resource):
     def get(self):
 
@@ -73,6 +63,16 @@ class uuid(Resource):
 
         return {'uuid': resources.globals.BALENA_DEVICE_UUID}
 
+class wificonnectionstatus(Resource):
+    def get(self):
+
+        response = wifi().checkconnection()
+
+        if response:
+            return {'status': 200, 'message': 'connected'}, 200
+        else:
+            return {'status': 206, 'message': 'disconnected'}, 206
+
 class wififorget(Resource):
     def get(self):
 
@@ -81,7 +81,6 @@ class wififorget(Resource):
 
         #If the device is connected to a wifi network
         if not connectionstate:
-
             return {
                 'status': 409,
                 'message': 'Device is already disconnected, connection cannot be reset.'
