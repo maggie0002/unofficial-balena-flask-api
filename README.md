@@ -2,7 +2,7 @@
 
 This is a Flask web API to allow a browser to trigger a series of actions on Balena OS devices. 
 
-This is not provided as a thoroughly tested container ready for production, but as example approaches for input and further development. Assistance, pull requests or just discussion/input would be much appreaciated. 
+This is not provided as a thoroughly tested container ready for use, but as example approaches for input and further development. Assistance, pull requests or just discussion/input would be welcomed. The ongoing development of this is within a private repo as part of a seperate project and is significantly improved. When that repo can be made public this notice will be updated.
 
 Don't forget to create a ./controller/config.py (see an example config file at ./controller/config-example.py). 
 
