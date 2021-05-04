@@ -1,6 +1,6 @@
 # unofficial-balena-flask-api
 
-DEPRECATED. This code is now out of date. It is instead maintained/used at: https://github.com/LearnersBlock/learners-block/tree/master/controller
+DEPRECATED. This code is now out of date. It is instead maintained/used at: https://github.com/LearnersBlock/learners-block/tree/master/controller/apps/backend
 
 This is a Flask web API to allow a browser to trigger a series of actions on Balena OS devices. 
 
